@@ -1,0 +1,98 @@
+# Build outputs
+/target/
+/dist/
+/build/
+/*.exe
+/*.dll
+/*.so
+*.dylib
+*.pdb
+
+# Cargo
+**/*.rs.bk
+Cargo.lock.local
+.cargo/
+
+# Node / pnpm
+node_modules/
+.pnpm-store/
+.npm/
+.pnpm-debug.log*
+
+# Editor / extension build outputs
+editors/vscode-extension/out/
+editors/vscode-extension/dist/
+editors/vscode-extension/*.vsix
+editors/zed-extension/target/
+editors/zed-extension/build/
+extensions/zed-runlens/target/
+extensions/zed-runlens/build/
+extensions/zed-runlens/extension.wasm
+
+# Godot
+tools/godot/
+fixtures/godot-*/.godot/
+fixtures/godot-*/addons/runlens/plugin.cfg.local
+
+# RunLens runtime data - never commit
+.runlens/
+*.runlens/
+runlens-store/
+runlens-temp/
+runlens-roll/
+.sqlite/
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+
+# Secrets and credentials
+*.pem
+*.key
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+
+# Local screenshots and demo media that should not be checked in
+fixtures/.local-media/
+
+# Misc junk
+*.log
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Local IDE/editor state
+.vscode/
+.idea/
+*.swp
+*.swo
+.cursor/
+.aider.*
+
+# OS
+$RECYCLE.BIN/
+
+# Legacy out-of-scope artifacts
+extensions/browser-runlens/
+extensions/sdk-go/
+extensions/sdk-python/
+crates/runlens-arch-drift/
+crates/runlens-artifact-provenance/
+crates/runlens-automation-language/
+crates/runlens-build-obs/
+crates/runlens-capacity/
+crates/runlens-cfg/
+crates/runlens-collab/
+crates/runlens-contract/
+crates/runlens-contract-inference/
+crates/runlens-crash/
+
+# Fuzz corpus
+tests/fuzz/corpus/runtime/

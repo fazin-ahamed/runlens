@@ -1,0 +1,122 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/runlens-core",
+    "crates/runlens-storage",
+    "crates/runlens-integrity",
+    "crates/runlens-recorder",
+    "crates/runlens-bundle",
+    "crates/runlens-privacy",
+    "crates/runlens-mcp",
+    "crates/runlens-rolling",
+    "crates/runlens-analysis",
+    "crates/runlens-graph",
+    "crates/runlens-query",
+    "crates/runlens-daemon",
+    "crates/runlens-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+license = "MIT"
+repository = "https://github.com/fazin-ahamed/runlens"
+authors = ["fazin-ahamed"]
+publish = false
+
+[workspace.lints]
+rust.unused_imports = "warn"
+rust.unused_variables = "warn"
+
+[workspace.dependencies]
+# Local crates
+runlens-core = { path = "crates/runlens-core" }
+runlens-storage = { path = "crates/runlens-storage" }
+runlens-integrity = { path = "crates/runlens-integrity" }
+runlens-recorder = { path = "crates/runlens-recorder" }
+runlens-rolling = { path = "crates/runlens-rolling" }
+runlens-bundle = { path = "crates/runlens-bundle" }
+runlens-privacy = { path = "crates/runlens-privacy" }
+runlens-analysis = { path = "crates/runlens-analysis" }
+runlens-mcp = { path = "crates/runlens-mcp" }
+runlens-regression = { path = "crates/runlens-regression" }
+runlens-bisect = { path = "crates/runlens-bisect" }
+runlens-workspace = { path = "crates/runlens-workspace" }
+runlens-proxy = { path = "crates/runlens-proxy" }
+runlens-db = { path = "crates/runlens-db" }
+runlens-doctor = { path = "crates/runlens-doctor" }
+runlens-query = { path = "crates/runlens-query" }
+runlens-provenance = { path = "crates/runlens-provenance" }
+runlens-ci = { path = "crates/runlens-ci" }
+runlens-minimize = { path = "crates/runlens-minimize" }
+runlens-diagnosis = { path = "crates/runlens-diagnosis" }
+
+# Hash + ident
+blake3 = "1.5"
+ulid = { version = "1.1", features = ["serde"] }
+
+# Errors
+anyhow = "1"
+thiserror = "2"
+
+# Serialization + time
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+chrono = { version = "0.4", features = ["serde"] }
+indexmap = { version = "2", features = ["serde"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# CLI
+clap = { version = "4", features = ["derive", "wrap_help"] }
+
+# Async / IO / processes
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "io-util", "time", "fs", "process", "signal"] }
+notify = { version = "6", default-features = false, features = ["macos_kqueue"] }
+
+# Filesystem
+walkdir = "2"
+
+# PTY
+portable-pty = "0.8"
+
+# Storage
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# Crypto
+sha2 = "0.10"
+hex = "0.4"
+
+# Bundles
+tar = "0.4"
+flate2 = "1"
+
+# HTTP
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
+hyper = "1"
+hyper-util = { version = "0.1", features = ["full"] }
+http-body-util = "0.1"
+tower = "0.5"
+axum = { version = "0.7", features = ["macros"] }
+bytes = "1"
+
+# Graph
+petgraph = "0.6"
+
+# Testing
+tempfile = "3"
+assert_cmd = "2"
+predicates = "3"
+pretty_assertions = "1"
+
+# Benchmarks
+criterion = "0.5"
+
+# Proptest
+proptest = "1"
+
+# Python
+pyo3 = "0.21"
