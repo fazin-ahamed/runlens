@@ -1,0 +1,128 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/runlens-core",
+    "crates/runlens-storage",
+    "crates/runlens-recorder",
+    "crates/runlens-bundle",
+    "crates/runlens-cli",
+    "crates/runlens-mcp",
+    "crates/runlens-daemon",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/runlens/runlens"
+authors = ["RunLens Contributors"]
+publish = false
+
+[workspace.dependencies]
+# Hash + ident
+blake3 = "1.5"
+ulid = { version = "1.1", features = ["serde"] }
+
+# Errors
+anyhow = "1"
+thiserror = "2"
+
+# Serialization + time
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+chrono = { version = "0.4", features = ["serde"] }
+indexmap = { version = "2", features = ["serde"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# CLI
+clap = { version = "4", features = ["derive", "wrap_help"] }
+
+# Async / IO / processes
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "io-util", "time", "fs", "process", "signal"] }
+portable-pty = "0.8"
+notify = { version = "6", default-features = false, features = ["macos_kqueue"] }
+walkdir = "2"
+
+# Storage
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# Bundles
+tar = "0.4"
+flate2 = "1"
+
+# Regex / parsers
+regex = "1"
+
+# Test deps
+proptest = "1"
+tempfile = "3"
+pretty_assertions = "1"
+assert_cmd = "2"
+predicates = "3"
+
+# Local HTTP (used for tests + secondary MCP transport)
+axum = { version = "0.7", features = ["json"] }
+tower = "0.5"
+
+[workspace.lints.clippy]
+# Safety
+unsafe_derive_deserialize = "warn"
+undocumented_unsafe_blocks = "warn"
+
+# Correctness
+enum_glob_use = "warn"
+fallible_impl_from = "warn"
+large_digit_groups = "warn"
+manual_assert = "warn"
+manual_let_else = "warn"
+missing_const_for_fn = "warn"
+missing_enforced_import_renames = "warn"
+panic_in_result_fn = "warn"
+unnecessary_self_imports = "warn"
+unnecessary_wraps = "warn"
+unused_async = "warn"
+used_underscore_binding = "warn"
+
+# Style
+cast_lossless = "warn"
+doc_markdown = "warn"
+explicit_iter_loop = "warn"
+implicit_clone = "warn"
+inefficient_to_string = "warn"
+let_unit_value = "warn"
+match_like_matches_macro = "warn"
+option_if_let_else = "warn"
+single_char_add_str = "warn"
+single_char_lifetime_names = "warn"
+str_to_string = "warn"
+string_lit_as_bytes = "warn"
+trivially_copy_pass_by_ref = "warn"
+unnecessary_join = "warn"
+unnecessary_literal_unwrap = "warn"
+unnecessary_struct_initialization = "warn"
+unused_self = "warn"
+
+# Complexity
+unnecessary_box_returns = "warn"
+
+# Deprecated / future compat
+disallowed_methods = "warn"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+deprecated_safe = { level = "warn", priority = -1 }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
+
+[profile.dev]
+opt-level = 0
+debug = true
+incremental = true

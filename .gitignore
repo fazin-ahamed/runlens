@@ -1,0 +1,21 @@
+/target/
+/Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# Extensions
+/extensions/vscode-runlens/node_modules/
+/extensions/vscode-runlens/out/
+/extensions/vscode-runlens/*.vsix
+
+# Per-project .runlens state lives here. Keep them out of git but the
+# gitignore below keeps the *structure* visible.
+/.runlens/runlens.sqlite
+/.runlens/runlens.sqlite-shm
+/.runlens/runlens.sqlite-wal
+/.runlens/blobs/
+/fixtures/dev-fixture/sample-app/target/
+/fixtures/dev-fixture/sample-app/Cargo.lock
+CONTRIBUTING.md
+/test-results/
+
