@@ -1,0 +1,16 @@
+# cargo-release configuration
+# Install: cargo install cargo-release
+# Usage:   cargo release --workspace <level>
+
+sign-commit = false
+sign-tag = false
+push-remote = "origin"
+consolidate-commits = true
+pre-release-replacements = []
+
+[workspace]
+allow-branch = ["main"]
+
+[workspace.publish]
+verify = true
+no-verify = false
