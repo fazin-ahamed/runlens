@@ -1,0 +1,35 @@
+[package]
+name = "runlens-bundle"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+description = "Portable .runlens bundle format: export and safe import"
+
+[lints]
+workspace = true
+
+[dependencies]
+runlens-core = { path = "../runlens-core" }
+runlens-storage = { path = "../runlens-storage" }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+tar = { workspace = true }
+flate2 = { workspace = true }
+blake3 = { workspace = true }
+walkdir = { workspace = true }
+tracing = { workspace = true }
+indexmap = { workspace = true }
+toml = "0.8"
+
+[dev-dependencies]
+tempfile = { workspace = true }
+proptest = { workspace = true }
+pretty_assertions = { workspace = true }
+tokio = { workspace = true }
