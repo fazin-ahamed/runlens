@@ -1,0 +1,15 @@
+# Files that should not end up in the VSIX package.
+src/
+node_modules/
+out/*.map
+.vscode-test/
+.eslintrc.js
+.eslintrc.json
+*.log
+.DS_Store
+*.tsbuildinfo
+.npmrc
+esbuild.js
+tsconfig.json
+README.md
+.gitignore

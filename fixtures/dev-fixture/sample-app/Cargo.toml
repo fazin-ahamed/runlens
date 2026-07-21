@@ -1,0 +1,22 @@
+[package]
+name = "sample-app"
+version = "0.0.1"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "sample-app"
+path = "src/main.rs"
+
+[[test]]
+name = "tests_pass"
+path = "tests/tests_pass.rs"
+
+[[test]]
+name = "tests_broken"
+path = "tests/tests_broken.rs"
+
+[dependencies]

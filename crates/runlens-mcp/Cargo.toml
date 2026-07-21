@@ -1,0 +1,38 @@
+[package]
+name = "runlens-mcp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+description = "Local Model Context Protocol server exposing RunLens tools to editors and agents"
+
+[[bin]]
+name = "runlens-mcp"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+runlens-core = { path = "../runlens-core" }
+runlens-storage = { path = "../runlens-storage" }
+runlens-bundle = { path = "../runlens-bundle" }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { workspace = true }
+tokio = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+indexmap = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+pretty_assertions = { workspace = true }

@@ -1,0 +1,40 @@
+[package]
+name = "runlens-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+description = "RunLens command-line interface"
+
+[[bin]]
+name = "runlens"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+runlens-core = { path = "../runlens-core" }
+runlens-storage = { path = "../runlens-storage" }
+runlens-recorder = { path = "../runlens-recorder" }
+runlens-bundle = { path = "../runlens-bundle" }
+runlens-mcp = { path = "../runlens-mcp" }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tokio = { workspace = true }
+indexmap = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+assert_cmd = { workspace = true }
+predicates = { workspace = true }
+pretty_assertions = { workspace = true }
