@@ -29,6 +29,8 @@
     clippy::used_underscore_binding,
     clippy::too_many_arguments,
     clippy::ptr_arg,
+    clippy::needless_borrow,
+    clippy::unused_async,
 )]
 
 use std::path::PathBuf;
@@ -192,6 +194,10 @@ enum Commands {
         #[arg(long)]
         json: bool,
     },
+    /// Start the HTTP/WS record-and-replay proxy
+    Proxy(commands::proxy::ProxyArgs),
+    /// Create, restore, and manage workspace checkpoints
+    Checkpoint(commands::checkpoint::CheckpointArgs),
 }
 
 fn main() {
@@ -279,6 +285,8 @@ async fn run(cli: Cli) -> anyhow::Result<()> {
         Commands::Redactions { session_id, json } => {
             commands::redactions::run(&workspace, &session_id, json).await
         }
+        Commands::Proxy(args) => commands::proxy::run(&args, &workspace).await,
+        Commands::Checkpoint(args) => commands::checkpoint::run(&args, &workspace).await,
     };
     res.context("command failed")
 }

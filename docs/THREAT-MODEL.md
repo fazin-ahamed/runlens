@@ -4,21 +4,21 @@ runlens records stuff. its job is to make a faithful, verifiable,
 export-safe trace of what happened during a command without becoming
 a side-channel for secrets.
 
-## adversaries I consider
+## adversaries we consider
 
 | adversary | capability |
 |-----------|------------|
 | **local user** | owns the machine, may share it with others |
 | **bundle consumer** | receives a .runlens file via slack/paste/git |
 | **AI assistant** | has tool access, reads redacted strings |
-| **rogue dependency** | writes to stdout or env that I record |
+| **rogue dependency** | writes to stdout or env that we record |
 | **machine attacker** | reads files in our repo post-mortem |
 
-I do not defend against someone with kernel-level access during
+we do not defend against someone with kernel-level access during
 recording. if an attacker can run arbitrary code while the recorder
 is alive, the recorder is the least of your problems.
 
-## guarantees I make
+## guarantees we make
 
 | property | how |
 |----------|-----|
@@ -33,7 +33,7 @@ is alive, the recorder is the least of your problems.
 | AI tools see read-only data | MCP surface is list, get, find, compare, verify. no writes. |
 | MCP binds locally | 127.0.0.1 only. never reachable from outside the host. |
 
-## properties I do not claim
+## properties we do not claim
 
 - **confidentiality at rest.** SQLite isnt encrypted. if your
   filesystem is compromised, the redacted payloads are still visible.
@@ -42,12 +42,12 @@ is alive, the recorder is the least of your problems.
   SIGKILL may be lost.
 - **tamper-resistance against someone who controls the writer.** a
   malicious script using our mutating APIs can produce a chain that
-  verifies but contains false data. I am not a trust anchor.
+  verifies but contains false data. we are not a trust anchor.
 
 ## bundles
 
 .runlens bundles are the trust boundary between the recorder and
-offline consumers. on import I:
+offline consumers. on import we:
 
 1. open the file as a gzipped tar
 2. reject any entry with path traversal or absolute drive before
@@ -86,4 +86,3 @@ audit log below.
 | date | change | PR |
 |------|--------|----|
 | 2026-07-17 | initial threat model with allow-list and redaction defaults | bootstrap |
-

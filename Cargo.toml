@@ -8,6 +8,8 @@ members = [
     "crates/runlens-cli",
     "crates/runlens-mcp",
     "crates/runlens-daemon",
+    "crates/runlens-proxy",
+    "crates/runlens-workspace",
 ]
 
 [workspace.package]

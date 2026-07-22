@@ -13,3 +13,5 @@ pub mod investigate;
 pub mod roll;
 pub mod redactions;
 pub mod mcp;
+pub mod checkpoint;
+pub mod proxy;

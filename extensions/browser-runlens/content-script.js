@@ -1,0 +1,2 @@
+const SECRET_PATTERNS = [
+  

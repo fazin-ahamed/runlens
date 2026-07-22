@@ -1,8 +1,8 @@
 # runlens
 
 runlens is a local-first dev flight recorder. it watches everything
-that happens when you run a command -- terminal output, file changes,
-git state, env, all of it -- and seals it into a blake3 hash chain
+that happens when you run a command — terminal output, file changes,
+git state, env, all of it — and seals it into a blake3 hash chain
 so you can go back later when stuff breaks.
 
 no network. no telemetry. every byte lives in a sqlite db under `.runlens/`.
@@ -13,7 +13,7 @@ no network. no telemetry. every byte lives in a sqlite db under `.runlens/`.
 - **privacy by default.** secrets in terminal output get redacted before storage.
 - **portable bundles.** export a session as a `.runlens` file, share it, verify on import.
 - **session comparison.** see where two runs diverged (no root cause claims though).
-- **mcp integration.** claude code, continue.dev, zed -- they can read recordings without re-running.
+- **mcp integration.** claude code, continue.dev, zed — they can read recordings without re-running.
 
 ## quick start
 
@@ -27,11 +27,11 @@ target/debug/runlens verify <session_id>
 
 ## docs
 
-- `docs/ARCHITECTURE.md` -- how the crates fit together
-- `docs/PRIVACY.md` -- what is and isnt captured
-- `docs/THREAT-MODEL.md` -- security analysis
-- `docs/PERFORMANCE.md` -- overhead numbers
-- `docs/LIMITATIONS.md` -- known gaps
+- `docs/ARCHITECTURE.md` — how the crates fit together
+- `docs/PRIVACY.md` — what is and isnt captured
+- `docs/THREAT-MODEL.md` — security analysis
+- `docs/PERFORMANCE.md` — overhead numbers
+- `docs/LIMITATIONS.md` — known gaps
 
 ## layout
 
@@ -56,4 +56,4 @@ docs/
 
 ## license
 
-MIT is the goat. see LICENSE.md for details.
+mit or apache-2.0, your pick.

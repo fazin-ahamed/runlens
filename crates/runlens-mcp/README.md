@@ -11,4 +11,4 @@ Model Context Protocol server exposing RunLens recordings as read-only tools for
 
 ## Exposed Tools
 
-All tools are read-only -- they walk stored sessions and return structured information. No tool deletes data or invokes the recorder.
+All tools are read-only — they walk stored sessions and return structured information. No tool deletes data or invokes the recorder.

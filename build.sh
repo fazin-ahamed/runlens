@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Top-level build script for RunLens. Mirrors the CI pipeline for offline runs.
 set -euo pipefail
 cd "$(dirname "$0")"
 

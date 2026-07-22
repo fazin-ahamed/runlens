@@ -1,14 +1,14 @@
 # limitations
 
-runlens is v0.1.0. a lot of stuff isnt perfect. heres what I know
+runlens is v0.1.0. a lot of stuff isnt perfect. heres what we know
 about so you dont discover it the hard way.
 
 ## cross-platform
 
 - **windows PTY** uses portable-pty's ConPTY backend. sometimes
   ConPTY drops the first byte of stdout on certain terminal widths.
-  I force 120 cols to avoid it but your mileage may vary.
-- **macOS** PTY works but I dont test it regularly.
+  we force 120 cols to avoid it but your mileage may vary.
+- **macOS** PTY works but we dont test it regularly.
 - file watcher uses platform backends (FSEvents on mac, inotify on
   linux, ReadDirectoryChangesW on windows). they all behave slightly
   differently.
@@ -16,13 +16,13 @@ about so you dont discover it the hard way.
 ## recorder
 
 - **PTY signal handling is lossy.** portable-pty's ExitStatus has
-  signal() as a private field so I only get exit codes.
+  signal() as a private field so we only get exit codes.
 - **PTY drain loop sleeps 25ms fixed.** fine for normal use but adds
   latency to session.end.
-- **no interactive stdin.** I dont forward terminal input.
+- **no interactive stdin.** we dont forward terminal input.
   record-only.
 - **single-writer mutex around emit.** limits concurrent emitters
-  to one. fine in practice since I only have one recorder plus
+  to one. fine in practice since we only have one recorder plus
   occasional profiler writes.
 
 ## file watcher
@@ -41,7 +41,7 @@ about so you dont discover it the hard way.
 
 ## env fingerprint
 
-- I dont enumerate process env by default. caller passes it in.
+- we dont enumerate process env by default. caller passes it in.
 - preview-then-hash is a heuristic. long values with special chars
   are hash-only.
 
@@ -71,7 +71,7 @@ about so you dont discover it the hard way.
 ## MCP
 
 - stdio transport is scaffold-grade. it responds to initialize and
-  tools/list but tools/call defers to HTTP. reason: I didnt want a
+  tools/list but tools/call defers to HTTP. reason: we didnt want a
   half-baked stdio handler dropping errors.
 - HTTP transport binds to 127.0.0.1 only. LAN binding intentionally
   not provided. use SSH tunnel if you need it.
@@ -85,15 +85,14 @@ about so you dont discover it the hard way.
 ## testing
 
 - recorder has 12 unit tests but no integration test that spawns a
-  real PTY child end-to-end. reason: ConPTY is flaky on the host I
-  develop on. I test manually.
+  real PTY child end-to-end. reason: ConPTY is flaky on the host we
+  develop on. we test manually.
 - VS Code extension is compiled-only, not packaged.
 - Godot plugin is a source scaffold, not editor-verified.
 
-## what I wont change (ever)
+## what we wont change (ever)
 
-- I will never call the network during recording.
-- I will never publish telemetry.
-- I will never silently drop redaction findings. every finding is
+- we will never call the network during recording.
+- we will never publish telemetry.
+- we will never silently drop redaction findings. every finding is
   available via `runlens redactions`.
-

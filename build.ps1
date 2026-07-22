@@ -1,3 +1,6 @@
+# Top-level build script for RunLens (Windows / PowerShell).
+# Mirrors the CI pipeline steps.
+
 $ErrorActionPreference = "Stop"
 Set-Location -LiteralPath $PSScriptRoot
 

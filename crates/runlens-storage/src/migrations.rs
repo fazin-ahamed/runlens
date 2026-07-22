@@ -15,6 +15,18 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "0002_trace_causal_spans",
         include_str!("migrations/0002_trace_causal_spans.sql"),
     ),
+    (
+        "0003_proxy",
+        include_str!("migrations/0003_proxy.sql"),
+    ),
+    (
+        "0004_browser_tabs",
+        include_str!("migrations/0004_browser_tabs.sql"),
+    ),
+    (
+        "0005_checkpoints",
+        include_str!("migrations/0005_checkpoints.sql"),
+    ),
 ];
 
 /// Run all pending migrations. Records the resulting version in

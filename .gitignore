@@ -17,5 +17,5 @@
 /fixtures/dev-fixture/sample-app/target/
 /fixtures/dev-fixture/sample-app/Cargo.lock
 CONTRIBUTING.md
-/test-results/
 
+/test-results/

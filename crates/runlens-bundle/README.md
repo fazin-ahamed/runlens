@@ -1,6 +1,6 @@
 # runlens-bundle
 
-Portable `.runlens` archive format -- deterministic gzip-compressed tar with versioned manifest, JSONL event chunks, and content-addressed blobs.
+Portable `.runlens` archive format — deterministic gzip-compressed tar with versioned manifest, JSONL event chunks, and content-addressed blobs.
 
 ## Format
 
