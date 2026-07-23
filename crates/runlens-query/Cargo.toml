@@ -1,0 +1,26 @@
+[package]
+name = "runlens-query"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+description = "RQL query language lexer, parser, and SQL executor"
+
+[lints]
+workspace = true
+
+[dependencies]
+runlens-core = { path = "../runlens-core" }
+runlens-storage = { path = "../runlens-storage" }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+rusqlite = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
