@@ -1,0 +1,23 @@
+[package]
+name = "runlens-analysis"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "Session analysis: divergence ranking and bug report generation"
+
+[lints]
+workspace = true
+
+[dependencies]
+runlens-core = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
