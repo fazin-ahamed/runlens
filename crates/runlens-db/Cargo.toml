@@ -1,0 +1,19 @@
+[package]
+name = "runlens-db"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+runlens-core = { path = "../runlens-core" }
+runlens-storage = { path = "../runlens-storage" }
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+sqlparser = "0.43"
+anyhow.workspace = true
+thiserror.workspace = true
