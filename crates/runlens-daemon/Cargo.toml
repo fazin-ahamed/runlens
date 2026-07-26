@@ -1,0 +1,42 @@
+[package]
+name = "runlens-daemon"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+description = "Background daemon with WebSocket IPC for the VS Code extension"
+
+[[bin]]
+name = "runlens-daemon"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+runlens-core = { path = "../runlens-core" }
+runlens-storage = { path = "../runlens-storage" }
+axum = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+clap = { workspace = true }
+tower = { workspace = true }
+chrono = { workspace = true }
+futures-util = "0.3.32"
+tokio-tungstenite = "0.24"
+runlens-graph = { path = "../runlens-graph" }
+runlens-query = { path = "../runlens-query" }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+tempfile = { workspace = true }
+pretty_assertions = { workspace = true }
