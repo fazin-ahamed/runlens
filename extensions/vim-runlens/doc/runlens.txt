@@ -1,0 +1,30 @@
+*runlens.txt*  RunLens developer flight recorder - Vim integration
+
+======================================================================
+COMMANDS                                             *runlens-commands*
+======================================================================
+
+:RunLensList                          *:RunLensList*
+    List all sessions. Shells out to `runlens list --json` and prints
+    session id, event count and duration.
+
+:RunLensRecord                        *:RunLensRecord*
+    Start a recording with a vim-<timestamp> label. Running again
+    starts a new recording.
+
+:RunLensStatus                        *:RunLensStatus*
+    Check if the runlens daemon is running.
+
+======================================================================
+INSTALL                                            *runlens-install*
+======================================================================
+
+1. Install the runlens binary:
+   https://github.com/anomalyco/runlens
+
+2. Add to your vimrc:
+   set rtp+=path/to/extensions/vim-runlens
+
+3. Requires `runlens` in $PATH.
+
+  vim:tw=78:ts=8:ft=help:norl:
