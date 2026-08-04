@@ -1,0 +1,16 @@
+[
+    {
+        "id": "tools",
+        "children": [
+            {
+                "caption": "RunLens",
+                "children": [
+                    { "command": "run_lens_list", "caption": "List Sessions" },
+                    { "command": "run_lens_record", "caption": "Start Recording" },
+                    { "command": "run_lens_graph", "caption": "Show Critical Path" },
+                    { "command": "run_lens_status", "caption": "Daemon Status" }
+                ]
+            }
+        ]
+    }
+]
