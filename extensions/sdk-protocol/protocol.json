@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "daemon": { "host": "127.0.0.1", "port": 9876 },
+  "event": {
+    "fields": {
+      "event_id": { "type": "string", "required": true },
+      "session_id": { "type": "string", "required": true },
+      "project_id": { "type": "string", "required": true },
+      "sequence": { "type": "integer", "required": true },
+      "source": { "type": "string", "enum": ["terminal","file","browser","proxy","network","extension","git","manual","sdk"] },
+      "kind": { "type": "string", "required": true },
+      "severity": { "type": "string", "enum": ["debug","info","warning","error","critical"], "required": true },
+      "utc_timestamp": { "type": "string", "format": "date-time", "required": true },
+      "monotonic_ns": { "type": "integer", "required": true },
+      "duration_ns": { "type": "integer" },
+      "thread_id": { "type": "string" },
+      "trace_id": { "type": "string" },
+      "span_id": { "type": "string" },
+      "parent_span_id": { "type": "string" },
+      "span_kind": { "type": "string", "enum": ["internal","server","client","producer","consumer"] },
+      "correlation_id": { "type": "string" },
+      "parent_event_id": { "type": "string" },
+      "correlation_ids": { "type": "array", "items": { "type": "string" } },
+      "payload": { "type": "object", "required": true },
+      "classification": { "type": "string", "enum": ["public","sensitive","internal","private","critical"], "required": true },
+      "envelope_version": { "type": "integer" },
+      "schema_version": { "type": "integer" }
+    }
+  },
+  "methods": {
+    "session.start": { "params": { "project_id": "string" }, "result": { "session_id": "string" } },
+    "session.stop": { "params": { "session_id": "string" }, "result": {} },
+    "event.emit": { "params": { "event": "EventV2" }, "result": {} },
+    "event.emit_batch": { "params": { "events": "EventV2[]" }, "result": { "count": "integer" } },
+    "daemon.status": { "params": {}, "result": { "version": "string", "status": "string" } }
+  }
+}

@@ -1,0 +1,18 @@
+// Generated — do not edit. Regen via: cd extensions/sdk-protocol && python generate.py
+
+export interface EventV2 {
+{% for f in required %}
+  {{ f | snake_to_camel }}: {{ fields[f].type | ts_type }};
+{% endfor %}
+{% for f in optional %}
+  {{ f | snake_to_camel }}?: {{ fields[f].type | ts_type }};
+{% endfor %}
+}
+
+export const METHODS = {
+{% for name, details in methods.items() %}
+  {{ name | upper | replace(".", "_") }}: "{{ name }}",
+{% endfor %}
+} as const;
+
+export const DAEMON_URL = "ws://{{ daemon.host }}:{{ daemon.port }}";

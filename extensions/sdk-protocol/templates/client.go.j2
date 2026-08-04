@@ -1,0 +1,118 @@
+// Generated — do not edit
+package runlens
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "sync"
+    "github.com/gorilla/websocket"
+)
+
+type DaemonClient struct {
+    url     string
+    conn    *websocket.Conn
+    mu      sync.Mutex
+    pending map[string]chan<- rpcResponse
+    id      uint64
+}
+
+type rpcRequest struct {
+    JsonRPC string `json:"jsonrpc"`
+    ID      uint64 `json:"id"`
+    Method  string `json:"method"`
+    Params  any    `json:"params,omitempty"`
+}
+
+type rpcResponse struct {
+    ID     uint64          `json:"id"`
+    Result json.RawMessage `json:"result,omitempty"`
+    Error  *rpcError       `json:"error,omitempty"`
+}
+
+type rpcError struct {
+    Code    int    `json:"code"`
+    Message string `json:"message"`
+}
+
+func NewDaemonClient(url string) *DaemonClient {
+    return &DaemonClient{url: url, pending: make(map[string]chan<- rpcResponse)}
+}
+
+func (c *DaemonClient) Connect(ctx context.Context) error {
+    conn, _, err := websocket.DefaultDialer.DialContext(ctx, c.url, nil)
+    if err != nil {
+        return fmt.Errorf("daemon connect: %w", err)
+    }
+    c.conn = conn
+    go c.readLoop()
+    return nil
+}
+
+func (c *DaemonClient) Call(ctx context.Context, method string, params any, result any) error {
+    c.mu.Lock()
+    c.id++
+    id := c.id
+    ch := make(chan rpcResponse, 1)
+    c.pending[fmt.Sprintf("%d", id)] = ch
+    req := rpcRequest{JsonRPC: "2.0", ID: id, Method: method, Params: params}
+    err := c.conn.WriteJSON(req)
+    c.mu.Unlock()
+    if err != nil {
+        return fmt.Errorf("rpc write: %w", err)
+    }
+    select {
+    case resp := <-ch:
+        if resp.Error != nil {
+            return fmt.Errorf("rpc error: %s", resp.Error.Message)
+        }
+        return json.Unmarshal(resp.Result, result)
+    case <-ctx.Done():
+        return ctx.Err()
+    }
+}
+
+func (c *DaemonClient) Emit(ctx context.Context, event EventV2) error {
+    c.mu.Lock()
+    conn := c.conn
+    c.mu.Unlock()
+    if conn == nil {
+        return fmt.Errorf("not connected")
+    }
+    return conn.WriteJSON(map[string]any{"jsonrpc": "2.0", "method": "event.emit", "params": map[string]any{"event": event}})
+}
+
+func (c *DaemonClient) EmitBatch(ctx context.Context, events []EventV2) error {
+    c.mu.Lock()
+    conn := c.conn
+    c.mu.Unlock()
+    if conn == nil {
+        return fmt.Errorf("not connected")
+    }
+    return conn.WriteJSON(map[string]any{"jsonrpc": "2.0", "method": "event.emit_batch", "params": map[string]any{"events": events}})
+}
+
+func (c *DaemonClient) Disconnect() error {
+    if c.conn != nil {
+        return c.conn.Close()
+    }
+    return nil
+}
+
+func (c *DaemonClient) readLoop() {
+    for {
+        var resp rpcResponse
+        if err := c.conn.ReadJSON(&resp); err != nil {
+            return
+        }
+        c.mu.Lock()
+        ch, ok := c.pending[fmt.Sprintf("%d", resp.ID)]
+        if ok {
+            delete(c.pending, fmt.Sprintf("%d", resp.ID))
+        }
+        c.mu.Unlock()
+        if ok {
+            ch <- resp
+        }
+    }
+}

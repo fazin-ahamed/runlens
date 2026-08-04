@@ -1,0 +1,24 @@
+# Generated — do not edit. Regen via: cd extensions/sdk-protocol && python generate.py
+
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Optional
+
+
+@dataclass
+class EventV2:
+{% for f in required %}
+    {{ f | snake_case }}: {{ fields[f].type | py_type }}
+{% endfor %}
+{% for f in optional %}
+    {{ f | snake_case }}: Optional[{{ fields[f].type | py_type }}] = None
+{% endfor %}
+
+
+METHODS = {
+{% for name, details in methods.items() %}
+    "{{ name | upper | replace(".", "_") }}": "{{ name }}",
+{% endfor %}
+}
+
+DAEMON_URL = "ws://{{ daemon.host }}:{{ daemon.port }}"

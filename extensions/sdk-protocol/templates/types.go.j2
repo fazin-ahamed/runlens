@@ -1,0 +1,24 @@
+// Generated — do not edit. Regen via: cd extensions/sdk-protocol && python generate.py
+
+package runlens
+
+type EventV2 struct {
+{% for f in required %}
+    {{ f | go_name }} {{ fields[f].type | go_type }} `json:"{{ f }}"`
+{% endfor %}
+{% for f in optional %}
+    {{ f | go_name }} *{{ fields[f].type | go_type }} `json:"{{ f }},omitempty"`
+{% endfor %}
+}
+
+var Methods = struct {
+{% for name, details in methods.items() %}
+    {{ name | replace(".", "_") | go_name }} string
+{% endfor %}
+}{
+{% for name, details in methods.items() %}
+    {{ name | replace(".", "_") | go_name }}: "{{ name }}",
+{% endfor %}
+}
+
+const DaemonURL = "ws://{{ daemon.host }}:{{ daemon.port }}"

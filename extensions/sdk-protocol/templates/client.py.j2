@@ -1,0 +1,60 @@
+# Generated — do not edit
+import asyncio
+import dataclasses
+import json
+from typing import Any
+import websockets
+
+
+class DaemonClient:
+    def __init__(self, url: str = DAEMON_URL):
+        self.url = url
+        self._ws = None
+        self._pending: dict[str, asyncio.Future] = {}
+        self._id = 0
+        self._reader_task: asyncio.Task | None = None
+
+    async def connect(self):
+        self._ws = await websockets.connect(self.url)
+        self._reader_task = asyncio.create_task(self._read_loop())
+
+    async def _read_loop(self):
+        try:
+            async for raw in self._ws:
+                msg = json.loads(raw)
+                msg_id = msg.get("id")
+                if msg_id is not None:
+                    fut = self._pending.pop(str(msg_id), None)
+                    if fut and not fut.done():
+                        if "error" in msg:
+                            fut.set_exception(RuntimeError(str(msg["error"])))
+                        else:
+                            fut.set_result(msg.get("result"))
+        except websockets.ConnectionClosed:
+            pass
+
+    async def call(self, method: str, params: Any = None) -> Any:
+        if not self._ws:
+            raise RuntimeError("Not connected")
+        self._id += 1
+        msg_id = str(self._id)
+        fut = asyncio.get_running_loop().create_future()
+        self._pending[msg_id] = fut
+        await self._ws.send(json.dumps({"jsonrpc": "2.0", "id": self._id, "method": method, "params": params}))
+        return await fut
+
+    async def emit(self, event):
+        if self._ws:
+            await self._ws.send(json.dumps({"jsonrpc": "2.0", "method": "event.emit", "params": {"event": dataclasses.asdict(event)}}))
+
+    async def emit_batch(self, events: list):
+        if self._ws:
+            await self._ws.send(json.dumps({"jsonrpc": "2.0", "method": "event.emit_batch", "params": {"events": [dataclasses.asdict(e) for e in events]}}))
+
+    async def disconnect(self):
+        if self._reader_task:
+            self._reader_task.cancel()
+            self._reader_task = None
+        if self._ws:
+            await self._ws.close()
+            self._ws = None
