@@ -1,0 +1,24 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/runlens/dock.gd" id="1"]
+
+[node name="RunLensDock" type="VBoxContainer"]
+script = ExtResource("1")
+custom_minimum_size = Vector2(260, 0)
+
+[node name="Label" type="Label" parent="."]
+text = "RunLens"
+theme_type_variation = "HeaderSmall"
+
+[node name="RecordBtn" type="Button" parent="."]
+text = "Record Session"
+
+[node name="StopBtn" type="Button" parent="."]
+text = "Stop Recording"
+
+[node name="ListBtn" type="Button" parent="."]
+text = "List Sessions"
+
+[node name="Output" type="TextEdit" parent="."]
+custom_minimum_size = Vector2(0, 200)
+readonly = true
