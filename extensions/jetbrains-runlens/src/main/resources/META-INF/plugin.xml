@@ -1,0 +1,33 @@
+<idea-plugin>
+    <id>runlens</id>
+    <name>RunLens</name>
+    <vendor>RunLens Contributors</vendor>
+    <description>Local-first developer flight recorder integration for IntelliJ-based IDEs.
+        Connects to the RunLens daemon at ws://localhost:9876 over JSON-RPC 2.0.
+        Provides session listing, recording control, graph visualization and daemon status.</description>
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="RunLens" anchor="right"
+                    factoryClass="runlens.SessionToolWindowFactory"
+                    icon="/META-INF/runlens.svg"/>
+        <statusBarWidgetFactory id="runlens.status"
+                                implementation="runlens.RunLensStatusBarFactory"/>
+        <projectService serviceImplementation="runlens.RunLensProjectService"/>
+    </extensions>
+
+    <actions>
+        <action id="runlens.Record" class="runlens.RecordingAction"
+                text="RunLens: Toggle Recording" description="Start or stop recording">
+            <keyboard-shortcut keymap="$default" first-keystroke="control shift R"/>
+        </action>
+        <action id="runlens.GraphCritical" class="runlens.GraphAction"
+                text="RunLens: Show Critical Path" description="Show the critical path for the active session">
+            <keyboard-shortcut keymap="$default" first-keystroke="control shift G"/>
+        </action>
+        <action id="runlens.ListSessions" class="runlens.ListSessionsAction"
+                text="RunLens: List Sessions" description="Refresh the session list">
+            <keyboard-shortcut keymap="$default" first-keystroke="control shift L"/>
+        </action>
+    </actions>
+</idea-plugin>
