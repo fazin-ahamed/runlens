@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSExtension</key>
+    <dict>
+        <key>NSExtensionAttributes</key>
+        <dict>
+            <key>XCSourceEditorCommandDefinitions</key>
+            <array>
+                <dict>
+                    <key>XCSourceEditorCommandClassName</key>
+                    <string>RecordSessionCommand</string>
+                    <key>XCSourceEditorCommandIdentifier</key>
+                    <string>com.runlens.xcode.recordSession</string>
+                    <key>XCSourceEditorCommandName</key>
+                    <string>Record Session</string>
+                </dict>
+                <dict>
+                    <key>XCSourceEditorCommandClassName</key>
+                    <string>ListSessionsCommand</string>
+                    <key>XCSourceEditorCommandIdentifier</key>
+                    <string>com.runlens.xcode.listSessions</string>
+                    <key>XCSourceEditorCommandName</key>
+                    <string>List Sessions</string>
+                </dict>
+            </array>
+        </dict>
+        <key>NSExtensionPointIdentifier</key>
+        <string>com.apple.dt.Xcode.extension.source-editor</string>
+        <key>NSExtensionPrincipalClass</key>
+        <string>RunLensXcodeExtension</string>
+    </dict>
+</dict>
+</plist>
