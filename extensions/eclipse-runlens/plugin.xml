@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension point="org.eclipse.ui.views">
+      <view
+            name="RunLens Sessions"
+            icon="icons/runlens.png"
+            category="RunLens"
+            class="runlenseclipse.views.SessionView"
+            id="runlenseclipse.views.SessionView">
+      </view>
+   </extension>
+
+   <extension point="org.eclipse.ui.commands">
+      <command
+            name="Toggle Recording"
+            description="Start or stop RunLens recording"
+            categoryId="runlenseclipse.category"
+            id="runlenseclipse.command.record">
+      </command>
+      <command
+            name="Show Critical Path"
+            description="Show critical path for active session"
+            categoryId="runlenseclipse.category"
+            id="runlenseclipse.command.graph">
+      </command>
+      <category
+            name="RunLens"
+            id="runlenseclipse.category">
+      </category>
+   </extension>
+
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+            commandId="runlenseclipse.command.record"
+            class="runlenseclipse.handlers.RecordHandler">
+      </handler>
+      <handler
+            commandId="runlenseclipse.command.graph"
+            class="runlenseclipse.handlers.GraphHandler">
+      </handler>
+   </extension>
+
+   <extension point="org.eclipse.ui.bindings">
+      <key
+            commandId="runlenseclipse.command.record"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+Shift+R">
+      </key>
+      <key
+            commandId="runlenseclipse.command.graph"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+Shift+G">
+      </key>
+   </extension>
+
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="menu:window?after=additions">
+         <menu label="RunLens">
+            <command commandId="runlenseclipse.command.record"/>
+            <command commandId="runlenseclipse.command.graph"/>
+         </menu>
+      </menuContribution>
+   </extension>
+</plugin>

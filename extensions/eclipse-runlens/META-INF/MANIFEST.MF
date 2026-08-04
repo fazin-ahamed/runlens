@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: RunLens
+Bundle-SymbolicName: runlenseclipse; singleton:=true
+Bundle-Version: 0.1.0
+Bundle-Activator: runlenseclipse.Activator
+Bundle-Vendor: RunLens Contributors
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.jface,
+ org.eclipse.swt
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Export-Package: runlenseclipse,
+ runlenseclipse.views,
+ runlenseclipse.handlers
