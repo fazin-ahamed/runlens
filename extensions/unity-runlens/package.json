@@ -1,0 +1,12 @@
+{
+  "name": "com.runlens.runlens",
+  "version": "0.1.0",
+  "displayName": "RunLens",
+  "description": "Local-first developer flight recorder integration for Unity",
+  "unity": "2021.3",
+  "author": {
+    "name": "RunLens Contributors"
+  },
+  "keywords": ["runlens", "recording", "debugging"],
+  "license": "MIT"
+}
