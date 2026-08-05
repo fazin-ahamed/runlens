@@ -1,0 +1,9 @@
+id = "runlens"
+name = "RunLens"
+version = "0.1.0"
+schema_version = 1
+authors = ["RunLens"]
+description = "Record, compare, and replay your dev sessions from inside Zed"
+repository = "https://github.com/fazin-ahamed/runlens"
+
+[context_servers.runlens]

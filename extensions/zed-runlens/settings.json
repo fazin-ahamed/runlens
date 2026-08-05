@@ -1,0 +1,16 @@
+# RunLens MCP server for Zed.
+#
+# Add this block to your Zed settings.json and start the local stdio
+# server with `runlens mcp` whenever you want AI-assistant access to
+# recorded sessions. The config points Zed at the bundled binary.
+
+{
+  "context_servers": {
+    "runlens": {
+      "command": "runlens",
+      "args": ["mcp"],
+      "transport": "stdio",
+      "env": {}
+    }
+  }
+}
