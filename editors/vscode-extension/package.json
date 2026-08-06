@@ -1,0 +1,40 @@
+{
+  "name": "runlens",
+  "displayName": "RunLens",
+  "description": "Development flight recorder for VS Code",
+  "version": "0.1.0",
+  "publisher": "runlens",
+  "license": "MIT",
+  "engines": { "vscode": "^1.95.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "runlens.init", "title": "RunLens: Initialize project" },
+      { "command": "runlens.record", "title": "RunLens: Record session" },
+      { "command": "runlens.list", "title": "RunLens: List sessions" },
+      { "command": "runlens.show", "title": "RunLens: Show session" },
+      { "command": "runlens.verify", "title": "RunLens: Verify chain" },
+      { "command": "runlens.redactions", "title": "RunLens: List redactions" }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "runlens.init" },
+        { "command": "runlens.record" },
+        { "command": "runlens.list" },
+        { "command": "runlens.show" },
+        { "command": "runlens.verify" },
+        { "command": "runlens.redactions" }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.95.0",
+    "typescript": "^5.5.0"
+  }
+}
