@@ -7,7 +7,9 @@ use crate::error::RqlError;
 pub fn execute(conn: &Connection, query: &Query) -> Result<Vec<Value>, RqlError> {
     let (sql, params) = to_sql(query)?;
     let mut stmt = conn.prepare(&sql)?;
-    let col_names: Vec<String> = (0..stmt.column_count()).map(|i| stmt.column_name(i).unwrap_or("?").to_string()).collect();
+    let col_names: Vec<String> = (0..stmt.column_count())
+        .map(|i| stmt.column_name(i).unwrap_or("?").to_string())
+        .collect();
     let rows = stmt.query_map(rusqlite::params_from_iter(params), |row| {
         let mut map = serde_json::Map::new();
         for name in &col_names {
@@ -27,7 +29,9 @@ pub fn explain(conn: &Connection, query: &Query) -> Result<Vec<Value>, RqlError>
     let (sql, params) = to_sql(query)?;
     let explain_sql = format!("EXPLAIN QUERY PLAN {sql}");
     let mut stmt = conn.prepare(&explain_sql)?;
-    let col_names: Vec<String> = (0..stmt.column_count()).map(|i| stmt.column_name(i).unwrap_or("?").to_string()).collect();
+    let col_names: Vec<String> = (0..stmt.column_count())
+        .map(|i| stmt.column_name(i).unwrap_or("?").to_string())
+        .collect();
     let rows = stmt.query_map(rusqlite::params_from_iter(params), |row| {
         let mut map = serde_json::Map::new();
         for name in &col_names {
@@ -47,9 +51,9 @@ fn sqlite_val_to_json(val: rusqlite::types::Value) -> Value {
     match val {
         rusqlite::types::Value::Null => Value::Null,
         rusqlite::types::Value::Integer(i) => Value::Number(i.into()),
-        rusqlite::types::Value::Real(f) => {
-            serde_json::Number::from_f64(f).map(Value::Number).unwrap_or(Value::Null)
-        }
+        rusqlite::types::Value::Real(f) => serde_json::Number::from_f64(f)
+            .map(Value::Number)
+            .unwrap_or(Value::Null),
         rusqlite::types::Value::Text(s) => Value::String(s),
         rusqlite::types::Value::Blob(_) => Value::String("[blob]".into()),
     }
@@ -92,10 +96,14 @@ pub fn to_sql(query: &Query) -> Result<(String, Vec<Box<dyn rusqlite::types::ToS
     }
 
     if !query.order_by.is_empty() {
-        let order_clauses: Vec<String> = query.order_by.iter().map(|o| {
-            let dir = if o.descending { " DESC" } else { "" };
-            format!("{}{}", field_col(&o.field), dir)
-        }).collect();
+        let order_clauses: Vec<String> = query
+            .order_by
+            .iter()
+            .map(|o| {
+                let dir = if o.descending { " DESC" } else { "" };
+                format!("{}{}", field_col(&o.field), dir)
+            })
+            .collect();
         sql.push_str(" ORDER BY ");
         sql.push_str(&order_clauses.join(", "));
     }
@@ -132,7 +140,10 @@ fn field_col(field: &str) -> String {
 }
 
 #[allow(clippy::used_underscore_binding)]
-fn condition_to_sql(cond: &Condition, _table: &str) -> Result<(String, Vec<Box<dyn rusqlite::types::ToSql>>), RqlError> {
+fn condition_to_sql(
+    cond: &Condition,
+    _table: &str,
+) -> Result<(String, Vec<Box<dyn rusqlite::types::ToSql>>), RqlError> {
     match cond {
         Condition::Compare { field, op, value } => {
             let col = field_col(field);
@@ -144,23 +155,23 @@ fn condition_to_sql(cond: &Condition, _table: &str) -> Result<(String, Vec<Box<d
                 format!("{col} {} {val_expr}", op.sql())
             };
             Ok((sql, params))
-        }
+        },
         Condition::And(left, right) => {
             let (ls, mut lp) = condition_to_sql(left, _table)?;
             let (rs, rp) = condition_to_sql(right, _table)?;
             lp.extend(rp);
             Ok((format!("({ls} AND {rs})"), lp))
-        }
+        },
         Condition::Or(left, right) => {
             let (ls, mut lp) = condition_to_sql(left, _table)?;
             let (rs, rp) = condition_to_sql(right, _table)?;
             lp.extend(rp);
             Ok((format!("({ls} OR {rs})"), lp))
-        }
+        },
         Condition::Not(inner) => {
             let (s, p) = condition_to_sql(inner, _table)?;
             Ok((format!("NOT ({s})"), p))
-        }
+        },
         Condition::Group(inner) => condition_to_sql(inner, _table),
     }
 }
@@ -181,11 +192,14 @@ fn time_window_to_sql(tw: &TimeWindow, table: &str) -> (String, Vec<Box<dyn rusq
         TimeDirection::After => ">",
     };
 
-    let ts_col = if table == "sessions" { "started_at" } else { "utc_timestamp" };
+    let ts_col = if table == "sessions" {
+        "started_at"
+    } else {
+        "utc_timestamp"
+    };
 
-    let sql = format!(
-        "{ts_col} {dir_op} (SELECT {ts_col} FROM {table} WHERE kind = ?1 ORDER BY {ts_col} DESC LIMIT 1)"
-    );
+    let sql =
+        format!("{ts_col} {dir_op} (SELECT {ts_col} FROM {table} WHERE kind = ?1 ORDER BY {ts_col} DESC LIMIT 1)");
 
     (sql, vec![Box::new(tw.anchor_kind.clone())])
 }

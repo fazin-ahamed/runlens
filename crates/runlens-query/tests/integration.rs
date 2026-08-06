@@ -48,20 +48,30 @@ fn seed_db() -> Connection {
             FOREIGN KEY (session_id) REFERENCES sessions(session_id),
             UNIQUE (session_id, sequence)
         );",
-    ).unwrap();
+    )
+    .unwrap();
 
     tx.execute(
         "INSERT INTO sessions(session_id, project_id, state, started_at, args, source_event_count)
          VALUES ('s1', 'p1', 'complete', '2025-01-01T00:00:00Z', '[]', 5)",
         [],
-    ).unwrap();
+    )
+    .unwrap();
 
     let events = vec![
         ("e1", "network.response", "info", "2025-01-01T00:00:00Z", 0, 1, "OK"),
         ("e2", "network.response", "info", "2025-01-01T00:00:05Z", 0, 2, "OK"),
         ("e3", "error", "error", "2025-01-01T00:00:10Z", 1, 3, "timeout"),
         ("e4", "marker", "info", "2025-01-01T00:00:15Z", 0, 4, "checkpoint"),
-        ("e5", "network.response", "error", "2025-01-01T00:00:20Z", 1, 5, "server_error"),
+        (
+            "e5",
+            "network.response",
+            "error",
+            "2025-01-01T00:00:20Z",
+            1,
+            5,
+            "server_error",
+        ),
     ];
 
     for (id, kind, severity, ts, error, seq, payload) in &events {
@@ -70,7 +80,8 @@ fn seed_db() -> Connection {
              kind, severity, utc_timestamp, monotonic_ns, payload_version, payload_json, classification, is_error_like)
              VALUES (?1, 's1', 'p1', ?6, 'test', 'test', ?2, ?3, ?4, 0, 1, ?7, 'unknown', ?5)",
             rusqlite::params![id, kind, severity, ts, error, seq, payload],
-        ).unwrap();
+        )
+        .unwrap();
     }
 
     tx.commit().unwrap();
@@ -98,7 +109,8 @@ fn test_query_filter_and() {
     let results = runlens_query::run_query(
         &conn,
         r#"FROM events WHERE kind = "network.response" AND severity = "error""#,
-    ).unwrap();
+    )
+    .unwrap();
     assert_eq!(results.len(), 1);
     assert_eq!(results[0]["event_id"], "e5");
 }
@@ -109,36 +121,28 @@ fn test_query_order() {
     let results = runlens_query::run_query(
         &conn,
         r#"FROM events WHERE kind = "network.response" ORDER BY sequence DESC"#,
-    ).unwrap();
+    )
+    .unwrap();
     assert_eq!(results.len(), 3);
 }
 
 #[test]
 fn test_query_time_window() {
     let conn = seed_db();
-    let results = runlens_query::run_query(
-        &conn,
-        r#"FROM events WITHIN 30s BEFORE "marker""#,
-    ).unwrap();
+    let results = runlens_query::run_query(&conn, r#"FROM events WITHIN 30s BEFORE "marker""#).unwrap();
     assert!(!results.is_empty(), "should find events before marker");
 }
 
 #[test]
 fn test_query_empty() {
     let conn = seed_db();
-    let results = runlens_query::run_query(
-        &conn,
-        r#"FROM events WHERE kind = "nonexistent""#,
-    ).unwrap();
+    let results = runlens_query::run_query(&conn, r#"FROM events WHERE kind = "nonexistent""#).unwrap();
     assert!(results.is_empty());
 }
 
 #[test]
 fn test_query_explain() {
     let conn = seed_db();
-    let plan = runlens_query::run_explain(
-        &conn,
-        r#"FROM events WHERE kind = "error""#,
-    ).unwrap();
+    let plan = runlens_query::run_explain(&conn, r#"FROM events WHERE kind = "error""#).unwrap();
     assert!(!plan.is_empty(), "explain should return rows");
 }

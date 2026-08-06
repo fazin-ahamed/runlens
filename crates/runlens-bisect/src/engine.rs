@@ -27,10 +27,7 @@ pub fn list_commits(repo_path: &Path, good: &str, bad: &str) -> anyhow::Result<V
         .current_dir(repo_path)
         .output()?;
     if !out.status.success() {
-        anyhow::bail!(
-            "git rev-list failed: {}",
-            String::from_utf8_lossy(&out.stderr).trim()
-        );
+        anyhow::bail!("git rev-list failed: {}", String::from_utf8_lossy(&out.stderr).trim());
     }
     Ok(String::from_utf8_lossy(&out.stdout)
         .lines()
@@ -84,15 +81,12 @@ where
             crate::predicate::PredicateResult::Bad => {
                 high = mid;
                 found = Some(commit);
-            }
+            },
             crate::predicate::PredicateResult::Inconclusive => low = mid + 1,
         }
     }
 
-    Ok(BisectResult {
-        evaluations,
-        found,
-    })
+    Ok(BisectResult { evaluations, found })
 }
 
 #[cfg(test)]
@@ -112,8 +106,13 @@ mod tests {
                 .output()?;
             let out = Command::new("git")
                 .args([
-                    "-c", "user.name=test", "-c", "user.email=test@example.com",
-                    "commit", "-m", &format!("commit {i}"),
+                    "-c",
+                    "user.name=test",
+                    "-c",
+                    "user.email=test@example.com",
+                    "commit",
+                    "-m",
+                    &format!("commit {i}"),
                 ])
                 .current_dir(dir)
                 .output()?;
@@ -146,7 +145,7 @@ mod tests {
         let ws = BisectWorkspace::new(&dir)?;
 
         let predicate = |_state: BisectState| async move {
-            let flag = std::fs::read_to_string(&_state.worktree_path.join("flag.txt")).unwrap_or_default();
+            let flag = std::fs::read_to_string(_state.worktree_path.join("flag.txt")).unwrap_or_default();
             if flag.contains("regressed") {
                 PredicateResult::Bad
             } else {
@@ -166,7 +165,11 @@ mod tests {
                 .collect::<Vec<_>>()
         };
         assert_eq!(result.found.as_deref(), expected.get(1).map(|s| s.as_str()));
-        assert!(result.evaluations <= 3, "expected a short search, got {}", result.evaluations);
+        assert!(
+            result.evaluations <= 3,
+            "expected a short search, got {}",
+            result.evaluations
+        );
         drop(ws);
         let _ = std::fs::remove_dir_all(&dir);
         Ok(())

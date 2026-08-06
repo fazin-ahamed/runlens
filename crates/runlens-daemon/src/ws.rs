@@ -111,23 +111,20 @@ async fn handle_message(text: &str, ingest: &IngestHandle) -> Result<(), JsonRpc
     match msg {
         IpcMessage::Notification(notif) => match notif.method.as_str() {
             protocol::methods::EVENT_EMIT | protocol::methods::DAEMON_INGEST => {
-                let event: EventV2 = serde_json::from_value(
-                    notif.params.unwrap_or_default(),
-                )
-                .map_err(|e| {
-                    JsonRpcError::invalid_params(format!("invalid event payload: {e}"))
-                })?;
-                ingest.ingest(event).await.map_err(|_| {
-                    JsonRpcError::internal_error("ingest channel closed")
-                })?;
-            }
+                let event: EventV2 = serde_json::from_value(notif.params.unwrap_or_default())
+                    .map_err(|e| JsonRpcError::invalid_params(format!("invalid event payload: {e}")))?;
+                ingest
+                    .ingest(event)
+                    .await
+                    .map_err(|_| JsonRpcError::internal_error("ingest channel closed"))?;
+            },
             _ => {
                 warn!("unknown ws notification method: {}", notif.method);
-            }
+            },
         },
         IpcMessage::Request(req) => {
             warn!("unexpected request in ws message: {}", req.method);
-        }
+        },
     }
     Ok(())
 }

@@ -1,4 +1,10 @@
-use axum::{extract::Json, http::StatusCode, response::IntoResponse, routing::{get, post}, Router};
+use axum::{
+    extract::Json,
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Router,
+};
 use serde_json::Value;
 use tracing::warn;
 
@@ -6,13 +12,17 @@ use runlens_storage::Repository;
 
 pub async fn run(repo: Repository, port: u16) -> anyhow::Result<()> {
     let app = Router::new()
-        .route("/mcp", post({
-            let repo = repo.clone();
-            move |Json(req): Json<Value>| async move { handle_rpc(&repo, req).await }
-        }))
-        .route("/tools", get(|| async {
-            Json(serde_json::json!({ "tools": crate::tools::list_tool_definitions() }))
-        }));
+        .route(
+            "/mcp",
+            post({
+                let repo = repo.clone();
+                move |Json(req): Json<Value>| async move { handle_rpc(&repo, req).await }
+            }),
+        )
+        .route(
+            "/tools",
+            get(|| async { Json(serde_json::json!({ "tools": crate::tools::list_tool_definitions() })) }),
+        );
 
     let listener = tokio::net::TcpListener::bind(("127.0.0.1", port)).await?;
     warn!(?port, "runlens mcp listening loopback");
@@ -51,7 +61,7 @@ async fn handle_rpc(repo: &Repository, req: Value) -> impl IntoResponse {
                                 "error": {"code":-32603,"message":e.to_string()}
                             })),
                         );
-                    }
+                    },
                 },
                 Err(e) => serde_json::json!({
                     "error": {"code":-32602,"message":e.to_string()}

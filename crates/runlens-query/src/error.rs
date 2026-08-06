@@ -19,10 +19,16 @@ pub enum RqlError {
 
 impl RqlError {
     pub fn parse(pos: usize, msg: impl fmt::Display) -> Self {
-        Self::Parse { position: pos, message: msg.to_string() }
+        Self::Parse {
+            position: pos,
+            message: msg.to_string(),
+        }
     }
     pub fn lex(pos: usize, msg: impl fmt::Display) -> Self {
-        Self::Lex { position: pos, message: msg.to_string() }
+        Self::Lex {
+            position: pos,
+            message: msg.to_string(),
+        }
     }
     pub fn exec(msg: impl fmt::Display) -> Self {
         Self::Execution(msg.to_string())

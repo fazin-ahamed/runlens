@@ -8,10 +8,7 @@ pub struct BisectWorkspace {
 
 impl BisectWorkspace {
     pub fn new(repo_path: &Path) -> anyhow::Result<Self> {
-        let base = std::env::temp_dir().join(format!(
-            "runlens-bisect-{}",
-            std::process::id()
-        ));
+        let base = std::env::temp_dir().join(format!("runlens-bisect-{}", std::process::id()));
         let _ = Command::new("git")
             .args(["worktree", "remove", "--force"])
             .arg(&base)

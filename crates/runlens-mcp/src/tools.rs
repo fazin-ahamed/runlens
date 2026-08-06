@@ -22,10 +22,7 @@ pub fn list_tool_definitions() -> Vec<crate::ToolDefinition> {
         tool_def(
             "runlens.compare_sessions",
             "Compare two sessions and return explainable divergences.",
-            json_schema_object(&[
-                ("baseline", json_schema_string()),
-                ("candidate", json_schema_string()),
-            ]),
+            json_schema_object(&[("baseline", json_schema_string()), ("candidate", json_schema_string())]),
         ),
         tool_def(
             "runlens.redactions",
@@ -91,10 +88,9 @@ pub async fn dispatch(repo: &Repository, call: ToolCall) -> anyhow::Result<serde
                 })
                 .collect();
             Ok(serde_json::json!({ "sessions": rows }))
-        }
+        },
         ToolCall::GetSession { arguments } => {
-            let s = repo
-                .get_session(&arguments.session_id)?;
+            let s = repo.get_session(&arguments.session_id)?;
             let events = repo.list_events(&s.session_id)?;
             let head = events.last().and_then(|e| e.current_hash.clone());
             let verify = chain::verify_chain(&events).is_ok();
@@ -113,7 +109,7 @@ pub async fn dispatch(repo: &Repository, call: ToolCall) -> anyhow::Result<serde
                     "chain_valid": verify,
                 }
             }))
-        }
+        },
         ToolCall::FindErrors { arguments } => {
             let events = repo.list_events(&arguments.session_id)?;
             let errors: Vec<_> = events
@@ -131,17 +127,17 @@ pub async fn dispatch(repo: &Repository, call: ToolCall) -> anyhow::Result<serde
                 })
                 .collect();
             Ok(serde_json::json!({ "errors": errors }))
-        }
+        },
         ToolCall::CompareSessions { arguments } => {
             let a = repo.list_events(&arguments.baseline)?;
             let b = repo.list_events(&arguments.candidate)?;
             let cmp = compare_sessions(&a, &b);
             Ok(serde_json::to_value(&cmp).unwrap_or_default())
-        }
+        },
         ToolCall::Redactions { arguments } => {
             let rows = repo.list_redactions(&arguments.session_id)?;
             Ok(serde_json::json!({ "redactions": rows }))
-        }
+        },
         ToolCall::VerifySession { arguments } => {
             let events = repo.list_events(&arguments.session_id)?;
             let status = chain::verify_chain(&events).is_ok();
@@ -150,12 +146,16 @@ pub async fn dispatch(repo: &Repository, call: ToolCall) -> anyhow::Result<serde
                 "events": events.len(),
                 "chain_valid": status,
             }))
-        }
+        },
     }
 }
 
 fn tool_def(name: &'static str, description: &'static str, input_schema: serde_json::Value) -> crate::ToolDefinition {
-    crate::ToolDefinition { name, description, input_schema }
+    crate::ToolDefinition {
+        name,
+        description,
+        input_schema,
+    }
 }
 
 fn json_schema_object(props: &[(&str, serde_json::Value)]) -> serde_json::Value {

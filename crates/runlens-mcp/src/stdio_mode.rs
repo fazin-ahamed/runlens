@@ -2,7 +2,7 @@ use std::io::{self, BufRead, Write};
 
 use serde_json::Value;
 
-use crate::tools::{ToolCall, list_tool_definitions};
+use crate::tools::{list_tool_definitions, ToolCall};
 use runlens_storage::Repository;
 
 pub async fn run(repo: Repository) -> anyhow::Result<()> {
@@ -63,7 +63,7 @@ async fn handle(repo: &Repository, req: Value) -> Option<Value> {
                     "isError": true
                 })),
             }
-        }
+        },
         _ => None,
     };
     match rpc_result {

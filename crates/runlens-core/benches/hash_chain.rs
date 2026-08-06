@@ -1,5 +1,5 @@
-use criterion::{criterion_group, criterion_main, black_box, Criterion};
 use chrono::Utc;
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use runlens_core::chain;
 use runlens_core::identifier::Identifier;
 use runlens_core::model::{Event, EventSource, PrivacyClassification, Severity};

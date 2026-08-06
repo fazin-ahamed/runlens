@@ -23,10 +23,7 @@ impl IngestHandle {
     }
 }
 
-pub fn start_ingest_worker(
-    repo: Repository,
-    subscriptions: Arc<SubscriptionManager>,
-) -> IngestHandle {
+pub fn start_ingest_worker(repo: Repository, subscriptions: Arc<SubscriptionManager>) -> IngestHandle {
     let (sender, rx) = mpsc::channel::<EventV2>(10_000);
     let handle = IngestHandle { sender: sender.clone() };
 
@@ -35,11 +32,7 @@ pub fn start_ingest_worker(
     handle
 }
 
-async fn ingest_worker(
-    mut rx: mpsc::Receiver<EventV2>,
-    repo: Repository,
-    subscriptions: Arc<SubscriptionManager>,
-) {
+async fn ingest_worker(mut rx: mpsc::Receiver<EventV2>, repo: Repository, subscriptions: Arc<SubscriptionManager>) {
     let mut batch = Vec::with_capacity(EVENTS_PER_COMMIT);
     let mut commit_timer = interval(Duration::from_millis(COMMIT_WINDOW_MS));
 
@@ -69,11 +62,7 @@ async fn ingest_worker(
     }
 }
 
-async fn commit_events(
-    batch: &mut Vec<EventV2>,
-    repo: &Repository,
-    subscriptions: &Arc<SubscriptionManager>,
-) {
+async fn commit_events(batch: &mut Vec<EventV2>, repo: &Repository, subscriptions: &Arc<SubscriptionManager>) {
     if batch.is_empty() {
         return;
     }
@@ -82,8 +71,7 @@ async fn commit_events(
         subscriptions.publish(ev).await;
     }
 
-    let v1_events: Vec<runlens_core::model::Event> =
-        batch.drain(..).map(|ev2| ev2.into()).collect();
+    let v1_events: Vec<runlens_core::model::Event> = batch.drain(..).map(|ev2| ev2.into()).collect();
     let repo = repo.clone();
     if let Err(e) = tokio::task::spawn_blocking(move || repo.batch_append_events(&v1_events))
         .await

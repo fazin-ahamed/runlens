@@ -30,7 +30,10 @@ impl Parser {
             self.advance();
             Ok(())
         } else {
-            Err(RqlError::parse(self.pos, format!("expected {expected:?}, got {:?}", self.peek())))
+            Err(RqlError::parse(
+                self.pos,
+                format!("expected {expected:?}, got {:?}", self.peek()),
+            ))
         }
     }
 
@@ -102,7 +105,13 @@ impl Parser {
             Vec::new()
         };
 
-        Ok(Query { source, filter, time_window, group_by, order_by })
+        Ok(Query {
+            source,
+            filter,
+            time_window,
+            group_by,
+            order_by,
+        })
     }
 
     fn parse_condition(&mut self) -> Result<Condition, RqlError> {
@@ -157,7 +166,11 @@ impl Parser {
             let sub = self.expect_ident()?;
             let op = self.parse_op()?;
             let value = self.parse_value()?;
-            Ok(Condition::Compare { field: format!("{field}.{sub}"), op, value })
+            Ok(Condition::Compare {
+                field: format!("{field}.{sub}"),
+                op,
+                value,
+            })
         } else {
             let op = self.parse_op()?;
             let value = self.parse_value()?;
@@ -198,12 +211,17 @@ impl Parser {
             Token::Number(n, Some(u)) => {
                 let ms = parse_duration_ms(*n, u)?;
                 (ms, u.clone())
-            }
+            },
             Token::Number(n, None) => {
                 let ms = parse_duration_ms(*n, "s")?;
                 (ms, "s".into())
-            }
-            t => return Err(RqlError::parse(pos1, format!("expected duration (number + unit), got {t:?}"))),
+            },
+            t => {
+                return Err(RqlError::parse(
+                    pos1,
+                    format!("expected duration (number + unit), got {t:?}"),
+                ))
+            },
         };
 
         let pos2 = self.pos;
@@ -215,7 +233,11 @@ impl Parser {
 
         let anchor = self.parse_anchor()?;
 
-        Ok(TimeWindow { duration_ms: num, direction, anchor_kind: anchor })
+        Ok(TimeWindow {
+            duration_ms: num,
+            direction,
+            anchor_kind: anchor,
+        })
     }
 
     fn parse_anchor(&mut self) -> Result<String, RqlError> {
@@ -226,9 +248,12 @@ impl Parser {
                 let val = self.expect_string()?;
                 self.expect(&Token::RParen)?;
                 Ok(val)
-            }
+            },
             Token::String(_) => self.expect_string(),
-            t => Err(RqlError::parse(self.pos, format!("expected anchor (string or function), got {t:?}"))),
+            t => Err(RqlError::parse(
+                self.pos,
+                format!("expected anchor (string or function), got {t:?}"),
+            )),
         }
     }
 
@@ -290,7 +315,7 @@ mod tests {
         let q = parse("FROM events WHERE kind = \"error\" AND severity >= 3").unwrap();
         let cond = q.filter.unwrap();
         match cond {
-            Condition::And(_, _) => {}
+            Condition::And(_, _) => {},
             _ => panic!("expected AND condition"),
         }
     }

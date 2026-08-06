@@ -1,10 +1,9 @@
 #![allow(clippy::useless_format)]
 
+use futures_util::{SinkExt, StreamExt};
 use runlens_core::event_v2::EventV2;
 use runlens_core::identifier::Identifier;
-use runlens_core::model::{
-    EventSource, PrivacyClassification, ProjectInfo, SessionInfo, SessionState, Severity,
-};
+use runlens_core::model::{EventSource, PrivacyClassification, ProjectInfo, SessionInfo, SessionState, Severity};
 use runlens_daemon::{pipeline, subscription::SubscriptionManager, ws};
 use runlens_storage::repo::Repository;
 use std::sync::Arc;
@@ -12,7 +11,6 @@ use tokio::sync::Notify;
 use tokio::time::{timeout, Duration};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
-use futures_util::{SinkExt, StreamExt};
 
 fn make_event(session_id: &str, project_id: &str, seq: u64) -> EventV2 {
     EventV2::new(
@@ -127,7 +125,7 @@ async fn ws_subscription_forwards_events() {
             assert_eq!(v["jsonrpc"], "2.0");
             assert_eq!(v["method"], "event.ingested");
             assert!(v["params"].is_object());
-        }
+        },
         other => panic!("expected Text message, got {:?}", other),
     }
 

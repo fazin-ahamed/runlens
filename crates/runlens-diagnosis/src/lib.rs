@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Diagnosis {
@@ -6,6 +6,7 @@ pub struct Diagnosis {
     pub confidence: f64,
 }
 
+#[derive(Default)]
 pub struct DiagnosisEngine;
 
 impl DiagnosisEngine {

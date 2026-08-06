@@ -356,9 +356,7 @@ impl PrivacyManager {
         expires_at_ns: Option<u64>,
     ) -> anyhow::Result<String> {
         if !self.subjects.contains_key(subject_id) {
-            return Err(anyhow::Error::new(PrivacyError::SubjectNotFound(
-                subject_id.to_owned(),
-            )));
+            return Err(anyhow::Error::new(PrivacyError::SubjectNotFound(subject_id.to_owned())));
         }
         self.consent_seq += 1;
         let id = format!("cons-{:03}", self.consent_seq);
@@ -381,9 +379,7 @@ impl PrivacyManager {
         let consent = self
             .consents
             .get_mut(consent_id)
-            .ok_or_else(|| {
-                anyhow::Error::new(PrivacyError::ConsentNotFound(consent_id.to_owned()))
-            })?;
+            .ok_or_else(|| anyhow::Error::new(PrivacyError::ConsentNotFound(consent_id.to_owned())))?;
         consent.status = ConsentStatus::Withdrawn;
         consent.expires_at_ns = Some(at_ns);
         Ok(())
@@ -413,9 +409,7 @@ impl PrivacyManager {
         requested_at_ns: u64,
     ) -> anyhow::Result<String> {
         if !self.subjects.contains_key(subject_id) {
-            return Err(anyhow::Error::new(PrivacyError::SubjectNotFound(
-                subject_id.to_owned(),
-            )));
+            return Err(anyhow::Error::new(PrivacyError::SubjectNotFound(subject_id.to_owned())));
         }
         self.request_seq += 1;
         let id = format!("req-{:03}", self.request_seq);
@@ -437,9 +431,7 @@ impl PrivacyManager {
         let req = self
             .requests
             .get_mut(request_id)
-            .ok_or_else(|| {
-                anyhow::Error::new(PrivacyError::RequestNotFound(request_id.to_owned()))
-            })?;
+            .ok_or_else(|| anyhow::Error::new(PrivacyError::RequestNotFound(request_id.to_owned())))?;
         if req.status == DataRequestStatus::Open {
             req.status = DataRequestStatus::InProgress;
         }
@@ -450,9 +442,7 @@ impl PrivacyManager {
         let req = self
             .requests
             .get_mut(request_id)
-            .ok_or_else(|| {
-                anyhow::Error::new(PrivacyError::RequestNotFound(request_id.to_owned()))
-            })?;
+            .ok_or_else(|| anyhow::Error::new(PrivacyError::RequestNotFound(request_id.to_owned())))?;
         if req.status == DataRequestStatus::Open || req.status == DataRequestStatus::InProgress {
             req.status = DataRequestStatus::Fulfilled;
             req.fulfilled_at_ns = Some(fulfilled_at_ns);
@@ -464,9 +454,7 @@ impl PrivacyManager {
         let req = self
             .requests
             .get_mut(request_id)
-            .ok_or_else(|| {
-                anyhow::Error::new(PrivacyError::RequestNotFound(request_id.to_owned()))
-            })?;
+            .ok_or_else(|| anyhow::Error::new(PrivacyError::RequestNotFound(request_id.to_owned())))?;
         if req.status == DataRequestStatus::Open || req.status == DataRequestStatus::InProgress {
             req.status = DataRequestStatus::Denied;
         }
@@ -506,10 +494,7 @@ impl PrivacyManager {
     }
 
     pub fn elements_for_category(&self, category: DataCategory) -> Vec<&DataElement> {
-        self.elements
-            .values()
-            .filter(|e| e.category == category)
-            .collect()
+        self.elements.values().filter(|e| e.category == category).collect()
     }
 
     pub fn active_consents_for_subject(&self, subject_id: &str, at_ns: u64) -> Vec<&ConsentGrant> {
@@ -591,10 +576,7 @@ impl PrivacyManager {
         if with_active_consent < total_subjects && total_subjects > 0 {
             findings.push(PrivacyFinding {
                 severity: PrivacySeverity::Medium,
-                message: format!(
-                    "consent coverage is {:.1}%",
-                    consent_coverage * 100.0
-                ),
+                message: format!("consent coverage is {:.1}%", consent_coverage * 100.0),
             });
         }
         for issue in &consent_issues {
@@ -602,9 +584,7 @@ impl PrivacyManager {
                 severity: PrivacySeverity::Medium,
                 message: format!(
                     "consent for subject {} ({}) is {}",
-                    issue.subject_id,
-                    issue.purpose,
-                    issue.status
+                    issue.subject_id, issue.purpose, issue.status
                 ),
             });
         }
@@ -620,9 +600,7 @@ impl PrivacyManager {
         let open_requests = self
             .requests
             .values()
-            .filter(|r| {
-                r.status == DataRequestStatus::Open || r.status == DataRequestStatus::InProgress
-            })
+            .filter(|r| r.status == DataRequestStatus::Open || r.status == DataRequestStatus::InProgress)
             .count();
         if open_requests > 0 {
             findings.push(PrivacyFinding {
@@ -631,16 +609,8 @@ impl PrivacyManager {
             });
         }
 
-        let active_consent_count = self
-            .consents
-            .values()
-            .filter(|c| c.is_active(at_ns))
-            .count();
-        let expired_consent_count = self
-            .consents
-            .values()
-            .filter(|c| c.is_expired(at_ns))
-            .count();
+        let active_consent_count = self.consents.values().filter(|c| c.is_active(at_ns)).count();
+        let expired_consent_count = self.consents.values().filter(|c| c.is_expired(at_ns)).count();
         let withdrawn_consent_count = self
             .consents
             .values()
@@ -697,11 +667,7 @@ impl PrivacyManager {
         records
     }
 
-    pub fn report_to_event_records(
-        &self,
-        session_id: &str,
-        report: &PrivacyReport,
-    ) -> Vec<EventRecord> {
+    pub fn report_to_event_records(&self, session_id: &str, report: &PrivacyReport) -> Vec<EventRecord> {
         let mut records = Vec::new();
         let mut sequence = 0u64;
         records.push(event_record(
@@ -732,11 +698,9 @@ fn event_record(
     sequence: &mut u64,
 ) -> EventRecord {
     let payload_json: serde_json::Value = serde_json::to_value(payload).unwrap_or_default();
-    let hash = blake3::hash(
-        format!("{}:{}:{}", session_id, kind, payload_json.to_string()).as_bytes(),
-    )
-    .to_hex()
-    .to_string();
+    let hash = blake3::hash(format!("{}:{}:{}", session_id, kind, payload_json).as_bytes())
+        .to_hex()
+        .to_string();
     *sequence += 1;
     EventRecord {
         session_id: session_id.to_owned(),
@@ -775,13 +739,7 @@ mod tests {
     #[test]
     fn test_register_element() {
         let mut mgr = PrivacyManager::new("1.0.0");
-        let id = mgr.register_element(
-            "email",
-            DataCategory::Personal,
-            30,
-            "auth-svc",
-            1_000,
-        );
+        let id = mgr.register_element("email", DataCategory::Personal, 30, "auth-svc", 1_000);
         assert_eq!(id, "elem-001");
         assert_eq!(mgr.element(&id).unwrap().retention_days, 30);
     }
@@ -799,13 +757,7 @@ mod tests {
     #[test]
     fn test_grant_consent_unknown_subject_errors() {
         let mut mgr = base_manager();
-        let result = mgr.grant_consent(
-            "sub-999",
-            "analytics",
-            DataCategory::Behavioral,
-            1_000,
-            None,
-        );
+        let result = mgr.grant_consent("sub-999", "analytics", DataCategory::Behavioral, 1_000, None);
         assert!(result.is_err());
     }
 
@@ -836,9 +788,7 @@ mod tests {
         let mut mgr = base_manager();
         mgr.register_element("logs", DataCategory::Technical, 500, "ingest", 1_000);
         mgr.add_retention_rule(DataCategory::Technical, 30, 1_000);
-        let violations = mgr
-            .analyze(2_000)
-            .retention_violations;
+        let violations = mgr.analyze(2_000).retention_violations;
         assert_eq!(violations.len(), 1);
         assert_eq!(violations[0].element_id, "elem-001");
         assert_eq!(violations[0].allowed_days, 30);

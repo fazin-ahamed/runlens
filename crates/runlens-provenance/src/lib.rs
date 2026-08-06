@@ -156,11 +156,7 @@ impl ProvenanceGraph {
         None
     }
 
-    fn reconstruct_path(
-        parent: &HashMap<String, String>,
-        source: &str,
-        target: &str,
-    ) -> Vec<String> {
+    fn reconstruct_path(parent: &HashMap<String, String>, source: &str, target: &str) -> Vec<String> {
         let mut path = vec![target.to_owned()];
         let mut current = target.to_owned();
         while current != source {
@@ -176,7 +172,11 @@ impl ProvenanceGraph {
     }
 
     fn edges_between(&self, from: &str, to: &str) -> Vec<ProvenanceEdge> {
-        self.edges.iter().filter(|e| e.from == from && e.to == to).cloned().collect()
+        self.edges
+            .iter()
+            .filter(|e| e.from == from && e.to == to)
+            .cloned()
+            .collect()
     }
 
     pub fn ancestors(&self, node_id: &str) -> Vec<String> {
@@ -225,14 +225,16 @@ impl ProvenanceGraph {
     }
 
     pub fn roots(&self) -> Vec<String> {
-        self.nodes.keys()
+        self.nodes
+            .keys()
             .filter(|id| self.incoming_edges(id).is_empty())
             .cloned()
             .collect()
     }
 
     pub fn leaves(&self) -> Vec<String> {
-        self.nodes.keys()
+        self.nodes
+            .keys()
             .filter(|id| self.outgoing_edges(id).is_empty())
             .cloned()
             .collect()
@@ -243,7 +245,14 @@ impl ProvenanceGraph {
         let mut current_path = vec![source_id.to_owned()];
         let mut visited = HashSet::new();
         visited.insert(source_id.to_owned());
-        self.all_paths_dfs(source_id, target_id, &mut current_path, &mut visited, &mut paths, max_depth);
+        self.all_paths_dfs(
+            source_id,
+            target_id,
+            &mut current_path,
+            &mut visited,
+            &mut paths,
+            max_depth,
+        );
         paths
     }
 
@@ -306,7 +315,8 @@ impl ProvenanceGraph {
         for id in self.nodes.keys() {
             in_degree.insert(id.clone(), self.incoming_edges(id).len());
         }
-        let mut queue: VecDeque<String> = in_degree.iter()
+        let mut queue: VecDeque<String> = in_degree
+            .iter()
             .filter(|(_, &d)| d == 0)
             .map(|(k, _)| k.clone())
             .collect();
@@ -341,8 +351,9 @@ impl ProvenanceGraph {
     }
 
     pub fn to_event_records(&self, session_id: &str) -> Vec<runlens_storage::EventRecord> {
-        self.edges.iter().map(|e| {
-            runlens_storage::EventRecord {
+        self.edges
+            .iter()
+            .map(|e| runlens_storage::EventRecord {
                 session_id: session_id.to_owned(),
                 event_id: format!("prov-{}-{}", e.from, e.to),
                 sequence: 0,
@@ -350,8 +361,8 @@ impl ProvenanceGraph {
                 payload_json: serde_json::to_string(e).unwrap_or_default(),
                 timestamp_ns: e.timestamp_ns,
                 hash: "".into(),
-            }
-        }).collect()
+            })
+            .collect()
     }
 }
 
@@ -366,19 +377,48 @@ mod tests {
     use super::*;
 
     fn node(id: &str, kind: ProvenanceNodeKind, label: &str, ts: i64) -> ProvenanceNode {
-        ProvenanceNode { id: id.into(), kind, label: label.into(), timestamp_ns: ts, metadata: HashMap::new() }
+        ProvenanceNode {
+            id: id.into(),
+            kind,
+            label: label.into(),
+            timestamp_ns: ts,
+            metadata: HashMap::new(),
+        }
     }
 
     fn edge(from: &str, to: &str, kind: ProvenanceEdgeKind, ts: i64, weight: f64) -> ProvenanceEdge {
-        ProvenanceEdge { from: from.into(), to: to.into(), kind, timestamp_ns: ts, weight, details: String::new() }
+        ProvenanceEdge {
+            from: from.into(),
+            to: to.into(),
+            kind,
+            timestamp_ns: ts,
+            weight,
+            details: String::new(),
+        }
     }
 
     #[test]
     fn test_add_nodes_and_edges() {
         let mut g = ProvenanceGraph::new();
-        g.add_node(node("orders.csv", ProvenanceNodeKind::DataSource, "raw orders feed", 100));
-        g.add_node(node("daily_rollup", ProvenanceNodeKind::Computation, "rollup by day", 200));
-        g.add_edge(edge("orders.csv", "daily_rollup", ProvenanceEdgeKind::DerivedFrom, 150, 1.0));
+        g.add_node(node(
+            "orders.csv",
+            ProvenanceNodeKind::DataSource,
+            "raw orders feed",
+            100,
+        ));
+        g.add_node(node(
+            "daily_rollup",
+            ProvenanceNodeKind::Computation,
+            "rollup by day",
+            200,
+        ));
+        g.add_edge(edge(
+            "orders.csv",
+            "daily_rollup",
+            ProvenanceEdgeKind::DerivedFrom,
+            150,
+            1.0,
+        ));
         assert_eq!(g.node_count(), 2);
         assert_eq!(g.edge_count(), 1);
     }
@@ -519,7 +559,12 @@ mod tests {
     fn test_subgraph() {
         let mut g = ProvenanceGraph::new();
         for i in 0..5 {
-            g.add_node(node(&format!("n{}", i), ProvenanceNodeKind::Computation, &format!("node {}", i), i as i64 * 100));
+            g.add_node(node(
+                &format!("n{}", i),
+                ProvenanceNodeKind::Computation,
+                &format!("node {}", i),
+                i as i64 * 100,
+            ));
         }
         g.add_edge(edge("n0", "n1", ProvenanceEdgeKind::DerivedFrom, 50, 1.0));
         g.add_edge(edge("n1", "n2", ProvenanceEdgeKind::DerivedFrom, 150, 1.0));

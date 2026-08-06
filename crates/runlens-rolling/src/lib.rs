@@ -58,8 +58,7 @@ impl RollingRecorder {
                 db_path = db_dir.join(format!("current.{attempt}.db"));
             }
 
-            let repo = Repository::open(&db_path)
-                .map_err(|e| RollingError::Storage(e.to_string()))?;
+            let repo = Repository::open(&db_path).map_err(|e| RollingError::Storage(e.to_string()))?;
 
             let sessions = repo
                 .list_recent_sessions(1)
@@ -113,13 +112,11 @@ impl RollingRecorder {
         let archive_path = self.config.db_dir.join(&archive_name);
 
         let current_path = self.config.db_dir.join("current.db");
-        std::fs::rename(&current_path, &archive_path)
-            .map_err(|e| RollingError::Io(e.to_string()))?;
+        std::fs::rename(&current_path, &archive_path).map_err(|e| RollingError::Io(e.to_string()))?;
 
         self.cleanup_old()?;
 
-        let repo = Repository::open(&current_path)
-            .map_err(|e| RollingError::Storage(e.to_string()))?;
+        let repo = Repository::open(&current_path).map_err(|e| RollingError::Storage(e.to_string()))?;
         self.active = Some(repo);
         self.session_count = 0;
 
@@ -144,8 +141,7 @@ impl RollingRecorder {
         let max_archives = self.config.max_sessions as usize;
         if archives.len() > max_archives {
             for old in archives.iter().take(archives.len() - max_archives) {
-                std::fs::remove_file(old.path())
-                    .map_err(|e| RollingError::Io(e.to_string()))?;
+                std::fs::remove_file(old.path()).map_err(|e| RollingError::Io(e.to_string()))?;
             }
         }
 
@@ -156,9 +152,9 @@ impl RollingRecorder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Utc;
     use runlens_core::identifier::Identifier;
     use runlens_core::model::{EventSource, PrivacyClassification, Severity};
-    use chrono::Utc;
     use tempfile::tempdir;
 
     fn sample_event() -> Event {

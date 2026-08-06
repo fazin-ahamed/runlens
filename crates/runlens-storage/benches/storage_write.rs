@@ -1,5 +1,5 @@
-use criterion::{criterion_group, criterion_main, black_box, Criterion};
 use chrono::Utc;
+use criterion::{criterion_group, criterion_main, Criterion};
 use runlens_core::identifier::Identifier;
 use runlens_core::model::{Event, EventSource, PrivacyClassification, Severity};
 use runlens_storage::repo::Repository;
@@ -30,7 +30,7 @@ fn bench_append(c: &mut Criterion) {
         let mut ev = build_event();
         b.iter(|| {
             ev.sequence += 1;
-            black_box(repo.append_event(&ev).unwrap());
+            repo.append_event(&ev).unwrap();
         });
     });
 
@@ -44,7 +44,7 @@ fn bench_append(c: &mut Criterion) {
                     ev.sequence = i;
                     events.push(ev);
                 }
-                black_box(repo.batch_append_events(&events).unwrap());
+                repo.batch_append_events(&events).unwrap();
             },
             criterion::BatchSize::SmallInput,
         )

@@ -51,10 +51,7 @@ pub fn detect_n_plus_one(events: &[EventV2], threshold: usize) -> Vec<NPlusOneGr
                 .and_then(|v| v.as_str())
                 .unwrap_or("")
                 .to_string();
-            let timestamps: Vec<f64> = evs
-                .iter()
-                .map(|e| e.utc_timestamp.timestamp() as f64)
-                .collect();
+            let timestamps: Vec<f64> = evs.iter().map(|e| e.utc_timestamp.timestamp() as f64).collect();
             detected_groups.push(NPlusOneGroup {
                 normalized_sql: sql,
                 count: evs.len(),
@@ -64,7 +61,7 @@ pub fn detect_n_plus_one(events: &[EventV2], threshold: usize) -> Vec<NPlusOneGr
             });
         }
     }
-    detected_groups.sort_by(|a, b| b.count.cmp(&a.count));
+    detected_groups.sort_by_key(|g| std::cmp::Reverse(g.count));
     detected_groups
 }
 
@@ -74,17 +71,13 @@ pub fn detect_slow_queries(events: &[EventV2], max_duration_ns: i64) -> Vec<Slow
         .filter(|e| e.kind == "db.query")
         .filter(|e| e.duration_ns.map(|d| d > max_duration_ns).unwrap_or(false))
         .map(|e| SlowQuery {
-            sql: e.payload
-                .get("sql")
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string(),
+            sql: e.payload.get("sql").and_then(|v| v.as_str()).unwrap_or("").to_string(),
             duration_ns: e.duration_ns.unwrap_or(0),
             timestamp: e.utc_timestamp.to_rfc3339(),
             event_id: e.event_id.clone(),
         })
         .collect();
-    slow_queries.sort_by(|a, b| b.duration_ns.cmp(&a.duration_ns));
+    slow_queries.sort_by_key(|q| std::cmp::Reverse(q.duration_ns));
     slow_queries
 }
 
@@ -92,8 +85,8 @@ pub fn detect_slow_queries(events: &[EventV2], max_duration_ns: i64) -> Vec<Slow
 mod tests {
     use super::*;
     use runlens_core::event_v2::EventV2;
-    use runlens_core::model::{EventSource, PrivacyClassification, Severity};
     use runlens_core::identifier::Identifier;
+    use runlens_core::model::{EventSource, PrivacyClassification, Severity};
 
     fn make_query_event(sql: &str, normalized: &str) -> EventV2 {
         EventV2::new(
@@ -143,9 +136,10 @@ mod tests {
 
     #[test]
     fn test_slow_query_detection() {
-        let mut events = Vec::new();
-        events.push(make_query_event_with_duration("SELECT 1", "SELECT ?", 50_000_000));
-        events.push(make_query_event_with_duration("SELECT 2", "SELECT ?", 200_000_000));
+        let events = vec![
+            make_query_event_with_duration("SELECT 1", "SELECT ?", 50_000_000),
+            make_query_event_with_duration("SELECT 2", "SELECT ?", 200_000_000),
+        ];
         let slow = detect_slow_queries(&events, 100_000_000);
         assert_eq!(slow.len(), 1);
         assert_eq!(slow[0].sql, "SELECT 2");

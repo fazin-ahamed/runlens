@@ -1,10 +1,6 @@
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms)]
-#![allow(
-    clippy::doc_markdown,
-    clippy::str_to_string,
-    clippy::single_char_lifetime_names,
-)]
+#![allow(clippy::doc_markdown, clippy::str_to_string, clippy::single_char_lifetime_names)]
 
 pub mod ast;
 pub mod error;

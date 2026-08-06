@@ -1,6 +1,5 @@
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms)]
-
 #![allow(clippy::doc_markdown)]
 
 use runlens_daemon::{discovery, ipc, pipeline, state::DaemonState, subscription::SubscriptionManager, ws};
@@ -26,13 +25,11 @@ fn find_project_root() -> Option<PathBuf> {
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info,runlens_daemon=info".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info,runlens_daemon=info".into()),
         )
         .init();
 
-    let project_root = find_project_root()
-        .ok_or_else(|| anyhow::anyhow!("no .runlens or .git found in path"))?;
+    let project_root = find_project_root().ok_or_else(|| anyhow::anyhow!("no .runlens or .git found in path"))?;
     let db_path = project_root.join(".runlens").join("runlens.sqlite");
 
     let port: u16 = std::env::var("RUNLENS_DAEMON_PORT")

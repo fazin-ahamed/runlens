@@ -1,10 +1,10 @@
 use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
-use rusqlite::{params, Connection};
 use runlens_core::model::{
     Event, EventSource, PrivacyClassification, ProjectInfo, SessionInfo, SessionState, Severity,
 };
+use rusqlite::{params, Connection};
 
 use crate::error::{StorageError, StorageResult};
 use crate::migrations;
@@ -25,14 +25,18 @@ impl Repository {
         let conn = Connection::open(path.as_ref())?;
         apply_pragmas(&conn)?;
         migrations::run(&conn)?;
-        Ok(Self { conn: Arc::new(Mutex::new(conn)) })
+        Ok(Self {
+            conn: Arc::new(Mutex::new(conn)),
+        })
     }
 
     pub fn in_memory() -> StorageResult<Self> {
         let conn = Connection::open_in_memory()?;
         apply_pragmas(&conn)?;
         migrations::run(&conn)?;
-        Ok(Self { conn: Arc::new(Mutex::new(conn)) })
+        Ok(Self {
+            conn: Arc::new(Mutex::new(conn)),
+        })
     }
 
     pub fn conn(&self) -> &Arc<Mutex<Connection>> {
@@ -124,7 +128,7 @@ impl Repository {
             "SELECT id, session_id, project_id, sequence, source, kind, severity, utc_timestamp, monotonic_ns, duration_ns, correlation_id, parent_event_id, payload_version, payload_json, classification, previous_hash, current_hash
              FROM event WHERE id = ?1",
             params![id],
-            |row| row_to_event(row),
+            row_to_event,
         )
         .map_err(|e| match e {
             rusqlite::Error::QueryReturnedNoRows => StorageError::EventNotFound(id.to_string()),
@@ -139,7 +143,7 @@ impl Repository {
              FROM event WHERE session_id = ?1 ORDER BY sequence",
         )?;
 
-        let rows = stmt.query_map(params![session_id], |row| row_to_event(row))?;
+        let rows = stmt.query_map(params![session_id], row_to_event)?;
         let mut events = Vec::new();
         for row in rows {
             events.push(row?);
@@ -200,7 +204,7 @@ impl Repository {
             "SELECT id, project_id, state, started_at, stopped_at, command, args_json, labels_json, source_event_count, imported, bundle_origin
              FROM session WHERE id = ?1",
             params![session_id],
-            |row| row_to_session(row),
+            row_to_session,
         )
         .map_err(|e| match e {
             rusqlite::Error::QueryReturnedNoRows => {
@@ -217,7 +221,7 @@ impl Repository {
              FROM session ORDER BY started_at DESC LIMIT ?1",
         )?;
 
-        let rows = stmt.query_map(params![limit as i64], |row| row_to_session(row))?;
+        let rows = stmt.query_map(params![limit as i64], row_to_session)?;
         let mut sessions = Vec::new();
         for row in rows {
             sessions.push(row?);
@@ -304,9 +308,7 @@ impl Repository {
 
     pub fn list_redactions(&self, session_id: &str) -> StorageResult<Vec<RedactionFinding>> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn.prepare(
-            "SELECT kind, preview FROM redaction WHERE session_id = ?1"
-        )?;
+        let mut stmt = conn.prepare("SELECT kind, preview FROM redaction WHERE session_id = ?1")?;
         let rows = stmt.query_map(params![session_id], |row| {
             Ok(RedactionFinding {
                 kind: row.get(0)?,
@@ -327,8 +329,8 @@ fn row_to_event(row: &rusqlite::Row) -> rusqlite::Result<Event> {
         .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?
         .into();
     let payload_json: String = row.get(13)?;
-    let payload: serde_json::Value = serde_json::from_str(&payload_json)
-        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+    let payload: serde_json::Value =
+        serde_json::from_str(&payload_json).map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
 
     Ok(Event {
         event_id: row.get(0)?,
@@ -353,11 +355,11 @@ fn row_to_event(row: &rusqlite::Row) -> rusqlite::Result<Event> {
 
 fn row_to_session(row: &rusqlite::Row) -> rusqlite::Result<SessionInfo> {
     let args_json: String = row.get(6)?;
-    let args: Vec<String> = serde_json::from_str(&args_json)
-        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+    let args: Vec<String> =
+        serde_json::from_str(&args_json).map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
     let labels_json: String = row.get(7)?;
-    let labels: Vec<String> = serde_json::from_str(&labels_json)
-        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+    let labels: Vec<String> =
+        serde_json::from_str(&labels_json).map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
     let stopped_at_str: Option<String> = row.get(4)?;
     let stopped_at = stopped_at_str
         .and_then(|s| DateTime::parse_from_rfc3339(&s).ok())

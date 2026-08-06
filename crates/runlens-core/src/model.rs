@@ -52,10 +52,7 @@ impl SessionState {
     }
 
     pub fn is_terminal(self) -> bool {
-        matches!(
-            self,
-            Self::Complete | Self::Failed | Self::ImportedReadOnly
-        )
+        matches!(self, Self::Complete | Self::Failed | Self::ImportedReadOnly)
     }
 }
 

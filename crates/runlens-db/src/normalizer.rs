@@ -1,6 +1,6 @@
 use sqlparser::ast::{
-    Expr, FunctionArg, FunctionArgExpr, GroupByExpr, JoinConstraint, JoinOperator, Query,
-    SelectItem, SetExpr, Statement, TableFactor, TableWithJoins, Value, Values,
+    Expr, FunctionArg, FunctionArgExpr, GroupByExpr, JoinConstraint, JoinOperator, Query, SelectItem, SetExpr,
+    Statement, TableFactor, TableWithJoins, Value, Values,
 };
 use sqlparser::dialect::GenericDialect;
 use sqlparser::parser::Parser;
@@ -9,53 +9,41 @@ use sqlparser::parser::Parser;
 // buckets together regardless of the concrete values being compared.
 pub fn normalize(sql: &str) -> Result<String, crate::error::DbError> {
     let dialect = GenericDialect;
-    let mut ast = Parser::parse_sql(&dialect, sql)
-        .map_err(|e| crate::error::DbError::Parse(e.to_string()))?;
+    let mut ast = Parser::parse_sql(&dialect, sql).map_err(|e| crate::error::DbError::Parse(e.to_string()))?;
     for stmt in &mut ast {
         replace_literals_in_statement(stmt);
     }
-    Ok(ast
-        .iter()
-        .map(|s| format!("{s}"))
-        .collect::<Vec<_>>()
-        .join("; "))
+    Ok(ast.iter().map(|s| format!("{s}")).collect::<Vec<_>>().join("; "))
 }
 
 fn replace_literals_in_expr(expr: &mut Expr) {
     match expr {
         Expr::Value(_) => {
             *expr = Expr::Value(Value::Placeholder("?".to_string()));
-        }
+        },
         Expr::BinaryOp { left, right, .. } => {
             replace_literals_in_expr(left);
             replace_literals_in_expr(right);
-        }
+        },
         Expr::UnaryOp { expr: inner, .. } => {
             replace_literals_in_expr(inner);
-        }
+        },
         Expr::Nested(inner) => {
             replace_literals_in_expr(inner);
-        }
+        },
         Expr::Between {
-            expr: inner,
-            low,
-            high,
-            ..
+            expr: inner, low, high, ..
         } => {
             replace_literals_in_expr(inner);
             replace_literals_in_expr(low);
             replace_literals_in_expr(high);
-        }
-        Expr::InList {
-            expr: inner,
-            list,
-            ..
-        } => {
+        },
+        Expr::InList { expr: inner, list, .. } => {
             replace_literals_in_expr(inner);
             for expr in list.iter_mut() {
                 replace_literals_in_expr(expr);
             }
-        }
+        },
         Expr::Function(func) => {
             for func_arg in func.args.iter_mut() {
                 match func_arg {
@@ -63,27 +51,25 @@ fn replace_literals_in_expr(expr: &mut Expr) {
                         if let FunctionArgExpr::Expr(e) = expr {
                             replace_literals_in_expr(e);
                         }
-                    }
+                    },
                 }
             }
             if let Some(filter) = &mut func.filter {
                 replace_literals_in_expr(filter);
             }
-            if let Some(over) = &mut func.over {
-                if let sqlparser::ast::WindowType::WindowSpec(spec) = over {
-                    for part in spec.partition_by.iter_mut() {
-                        replace_literals_in_expr(part);
-                    }
-                    for order in spec.order_by.iter_mut() {
-                        replace_literals_in_expr(&mut order.expr);
-                    }
+            if let Some(sqlparser::ast::WindowType::WindowSpec(spec)) = &mut func.over {
+                for part in spec.partition_by.iter_mut() {
+                    replace_literals_in_expr(part);
+                }
+                for order in spec.order_by.iter_mut() {
+                    replace_literals_in_expr(&mut order.expr);
                 }
             }
-        }
+        },
         Expr::Cast { expr: inner, .. } | Expr::Extract { expr: inner, .. } => {
             replace_literals_in_expr(inner);
-        }
-        Expr::Subquery(_) => {}
+        },
+        Expr::Subquery(_) => {},
         Expr::Case {
             operand,
             conditions,
@@ -103,40 +89,32 @@ fn replace_literals_in_expr(expr: &mut Expr) {
             if let Some(el) = else_result {
                 replace_literals_in_expr(el);
             }
-        }
+        },
         Expr::Tuple(items) => {
             for expr in items.iter_mut() {
                 replace_literals_in_expr(expr);
             }
-        }
+        },
         Expr::Array(arr) => {
             for elem in arr.elem.iter_mut() {
                 replace_literals_in_expr(elem);
             }
-        }
+        },
         Expr::SimilarTo {
-            expr: inner,
-            pattern,
-            ..
+            expr: inner, pattern, ..
         }
         | Expr::Like {
-            expr: inner,
-            pattern,
-            ..
+            expr: inner, pattern, ..
         }
         | Expr::ILike {
-            expr: inner,
-            pattern,
-            ..
+            expr: inner, pattern, ..
         }
         | Expr::RLike {
-            expr: inner,
-            pattern,
-            ..
+            expr: inner, pattern, ..
         } => {
             replace_literals_in_expr(inner);
             replace_literals_in_expr(pattern);
-        }
+        },
         Expr::IsNull(_)
         | Expr::IsNotNull(_)
         | Expr::IsTrue(_)
@@ -144,19 +122,19 @@ fn replace_literals_in_expr(expr: &mut Expr) {
         | Expr::IsFalse(_)
         | Expr::IsNotFalse(_)
         | Expr::IsUnknown(_)
-        | Expr::IsNotUnknown(_) => {}
+        | Expr::IsNotUnknown(_) => {},
         Expr::IsDistinctFrom(left, right) | Expr::IsNotDistinctFrom(left, right) => {
             replace_literals_in_expr(left);
             replace_literals_in_expr(right);
-        }
+        },
         Expr::InSubquery { expr: inner, .. } | Expr::InUnnest { expr: inner, .. } => {
             replace_literals_in_expr(inner);
-        }
+        },
         Expr::AnyOp { left, right, .. } | Expr::AllOp { left, right, .. } => {
             replace_literals_in_expr(left);
             replace_literals_in_expr(right);
-        }
-        Expr::Exists { .. } => {}
+        },
+        Expr::Exists { .. } => {},
         Expr::Substring {
             expr: inner,
             substring_from,
@@ -170,17 +148,15 @@ fn replace_literals_in_expr(expr: &mut Expr) {
             if let Some(for_expr) = substring_for {
                 replace_literals_in_expr(for_expr);
             }
-        }
+        },
         Expr::Trim {
-            expr: inner,
-            trim_what,
-            ..
+            expr: inner, trim_what, ..
         } => {
             replace_literals_in_expr(inner);
             if let Some(what) = trim_what {
                 replace_literals_in_expr(what);
             }
-        }
+        },
         Expr::Overlay {
             expr: inner,
             overlay_what,
@@ -193,22 +169,25 @@ fn replace_literals_in_expr(expr: &mut Expr) {
             if let Some(for_expr) = overlay_for {
                 replace_literals_in_expr(for_expr);
             }
-        }
+        },
         Expr::Collate { expr: inner, .. } => {
             replace_literals_in_expr(inner);
-        }
+        },
         Expr::Position { expr: inner, r#in } => {
             replace_literals_in_expr(inner);
             replace_literals_in_expr(r#in);
-        }
-        Expr::AtTimeZone { timestamp, time_zone: _ } => {
+        },
+        Expr::AtTimeZone {
+            timestamp,
+            time_zone: _,
+        } => {
             replace_literals_in_expr(timestamp);
-        }
+        },
         Expr::Ceil { expr: inner, .. } | Expr::Floor { expr: inner, .. } => {
             replace_literals_in_expr(inner);
-        }
-        Expr::Convert { .. } | Expr::IntroducedString { .. } | Expr::TypedString { .. } => {}
-        _ => {}
+        },
+        Expr::Convert { .. } | Expr::IntroducedString { .. } | Expr::TypedString { .. } => {},
+        _ => {},
     }
 }
 
@@ -216,29 +195,25 @@ fn replace_literals_in_statement(stmt: &mut Statement) {
     match stmt {
         Statement::Query(query) => {
             replace_literals_in_query(query);
-        }
+        },
         Statement::Insert {
-            source: insert_source,
+            source: Some(insert_source),
             ..
         } => {
-            if let Some(src) = insert_source {
-                replace_literals_in_query(src);
-            }
-        }
-        Statement::Update { selection, .. } => {
-            if let Some(expr) = selection {
-                replace_literals_in_expr(expr);
-            }
-        }
+            replace_literals_in_query(insert_source);
+        },
+        Statement::Update {
+            selection: Some(expr), ..
+        } => {
+            replace_literals_in_expr(expr);
+        },
         Statement::Delete {
-            selection: delete_selection,
+            selection: Some(delete_selection),
             ..
         } => {
-            if let Some(expr) = delete_selection {
-                replace_literals_in_expr(expr);
-            }
-        }
-        _ => {}
+            replace_literals_in_expr(delete_selection);
+        },
+        _ => {},
     }
 }
 
@@ -262,8 +237,8 @@ fn replace_literals_in_set_expr(set_expr: &mut SetExpr) {
                 match select_item {
                     SelectItem::UnnamedExpr(expr) | SelectItem::ExprWithAlias { expr, .. } => {
                         replace_literals_in_expr(expr);
-                    }
-                    _ => {}
+                    },
+                    _ => {},
                 }
             }
             for twj in &mut select.from {
@@ -280,22 +255,22 @@ fn replace_literals_in_set_expr(set_expr: &mut SetExpr) {
             if let Some(expr) = &mut select.having {
                 replace_literals_in_expr(expr);
             }
-        }
+        },
         SetExpr::Values(Values { rows, .. }) => {
             for row in rows.iter_mut() {
                 for expr in row.iter_mut() {
                     replace_literals_in_expr(expr);
                 }
             }
-        }
+        },
         SetExpr::Query(subquery) => {
             replace_literals_in_query(subquery);
-        }
+        },
         SetExpr::SetOperation { left, right, .. } => {
             replace_literals_in_set_expr(left);
             replace_literals_in_set_expr(right);
-        }
-        _ => {}
+        },
+        _ => {},
     }
 }
 
@@ -323,10 +298,10 @@ fn replace_literals_in_table_factor(tf: &mut TableFactor) {
     match tf {
         TableFactor::Derived { subquery, .. } => {
             replace_literals_in_query(subquery.as_mut());
-        }
+        },
         TableFactor::TableFunction { expr, .. } => {
             replace_literals_in_expr(expr);
-        }
+        },
         TableFactor::Function { args, .. } => {
             for func_arg in args.iter_mut() {
                 match func_arg {
@@ -334,21 +309,19 @@ fn replace_literals_in_table_factor(tf: &mut TableFactor) {
                         if let FunctionArgExpr::Expr(e) = expr {
                             replace_literals_in_expr(e);
                         }
-                    }
+                    },
                 }
             }
-        }
+        },
         TableFactor::UNNEST { array_exprs, .. } => {
             for expr in array_exprs.iter_mut() {
                 replace_literals_in_expr(expr);
             }
-        }
-        TableFactor::NestedJoin {
-            table_with_joins, ..
-        } => {
+        },
+        TableFactor::NestedJoin { table_with_joins, .. } => {
             replace_literals_in_table_with_joins(table_with_joins);
-        }
-        _ => {}
+        },
+        _ => {},
     }
 }
 
@@ -360,10 +333,7 @@ mod tests {
     fn test_select_where_literals() {
         let sql = "SELECT * FROM users WHERE id = 1 AND name = 'alice'";
         let normalized = normalize(sql).unwrap();
-        assert_eq!(
-            normalized,
-            "SELECT * FROM users WHERE id = ? AND name = ?"
-        );
+        assert_eq!(normalized, "SELECT * FROM users WHERE id = ? AND name = ?");
     }
 
     #[test]

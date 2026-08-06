@@ -13,10 +13,7 @@ pub fn to_text(result: &AnalysisResult) -> String {
         out.push_str("  (none detected)\n");
     } else {
         for g in &result.n_plus_one {
-            out.push_str(&format!(
-                "\n  SQL: {}\n",
-                g.normalized_sql
-            ));
+            out.push_str(&format!("\n  SQL: {}\n", g.normalized_sql));
             out.push_str(&format!(
                 "  Count: {} | Total: {}ms\n",
                 g.count,
@@ -31,11 +28,7 @@ pub fn to_text(result: &AnalysisResult) -> String {
         out.push_str("  (none detected)\n");
     } else {
         for q in &result.slow_queries {
-            out.push_str(&format!(
-                "  {}ms | {}\n",
-                q.duration_ns / 1_000_000,
-                q.sql
-            ));
+            out.push_str(&format!("  {}ms | {}\n", q.duration_ns / 1_000_000, q.sql));
             out.push_str(&format!("  Event: {}\n", q.event_id));
         }
     }

@@ -47,11 +47,7 @@ impl From<std::io::Error> for ImportError {
     }
 }
 
-pub fn import_session(
-    path: &Path,
-    repo: &Repository,
-    _opts: ImportOptions,
-) -> Result<ImportReport, ImportError> {
+pub fn import_session(path: &Path, repo: &Repository, _opts: ImportOptions) -> Result<ImportReport, ImportError> {
     let file = std::fs::File::open(path)?;
     let decoder = GzDecoder::new(file);
     let mut archive = Archive::new(decoder);
@@ -81,8 +77,7 @@ pub fn import_session(
                 }
                 manifest = Some(m);
             } else if path.starts_with("events/") && path.ends_with(".json") {
-                let event: runlens_core::model::Event =
-                    serde_json::from_slice(&buf).unwrap();
+                let event: runlens_core::model::Event = serde_json::from_slice(&buf).unwrap();
                 events.push(event);
             }
         });
@@ -109,8 +104,7 @@ pub fn import_session(
 
     let mut events_imported: u64 = 0;
     for event in &events {
-        repo.append_event(event)
-            .map_err(|e| ImportError::Io(e.to_string()))?;
+        repo.append_event(event).map_err(|e| ImportError::Io(e.to_string()))?;
         events_imported += 1;
     }
 

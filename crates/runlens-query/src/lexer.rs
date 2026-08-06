@@ -70,7 +70,10 @@ pub struct Lexer {
 
 impl Lexer {
     pub fn new(input: &str) -> Self {
-        Self { chars: input.chars().collect(), pos: 0 }
+        Self {
+            chars: input.chars().collect(),
+            pos: 0,
+        }
     }
 
     pub fn tokenize(&mut self) -> Result<Vec<Token>, RqlError> {
@@ -98,7 +101,9 @@ impl Lexer {
         if c == '"' || c == '\'' {
             return self.read_string(c);
         }
-        if c.is_ascii_digit() || (c == '-' && self.pos + 1 < self.chars.len() && self.chars[self.pos + 1].is_ascii_digit()) {
+        if c.is_ascii_digit()
+            || (c == '-' && self.pos + 1 < self.chars.len() && self.chars[self.pos + 1].is_ascii_digit())
+        {
             return self.read_number();
         }
         if c.is_ascii_alphabetic() || c == '_' {
@@ -106,11 +111,26 @@ impl Lexer {
         }
 
         match c {
-            '(' => { self.pos += 1; Ok(Token::LParen) }
-            ')' => { self.pos += 1; Ok(Token::RParen) }
-            ',' => { self.pos += 1; Ok(Token::Comma) }
-            '.' => { self.pos += 1; Ok(Token::Dot) }
-            '=' => { self.pos += 1; Ok(Token::Eq) }
+            '(' => {
+                self.pos += 1;
+                Ok(Token::LParen)
+            },
+            ')' => {
+                self.pos += 1;
+                Ok(Token::RParen)
+            },
+            ',' => {
+                self.pos += 1;
+                Ok(Token::Comma)
+            },
+            '.' => {
+                self.pos += 1;
+                Ok(Token::Dot)
+            },
+            '=' => {
+                self.pos += 1;
+                Ok(Token::Eq)
+            },
             '!' => {
                 if self.pos + 1 < self.chars.len() && self.chars[self.pos + 1] == '=' {
                     self.pos += 2;
@@ -118,7 +138,7 @@ impl Lexer {
                 } else {
                     Err(RqlError::lex(self.pos, "expected '=' after '!'"))
                 }
-            }
+            },
             '<' => {
                 if self.pos + 1 < self.chars.len() && self.chars[self.pos + 1] == '=' {
                     self.pos += 2;
@@ -127,7 +147,7 @@ impl Lexer {
                     self.pos += 1;
                     Ok(Token::Lt)
                 }
-            }
+            },
             '>' => {
                 if self.pos + 1 < self.chars.len() && self.chars[self.pos + 1] == '=' {
                     self.pos += 2;
@@ -136,7 +156,7 @@ impl Lexer {
                     self.pos += 1;
                     Ok(Token::Gt)
                 }
-            }
+            },
             '~' => {
                 if self.pos + 1 < self.chars.len() && self.chars[self.pos + 1] == '=' {
                     self.pos += 2;
@@ -144,7 +164,7 @@ impl Lexer {
                 } else {
                     Err(RqlError::lex(self.pos, "expected '=' after '~'"))
                 }
-            }
+            },
             _ => Err(RqlError::lex(self.pos, format!("unexpected character '{c}'"))),
         }
     }
@@ -197,7 +217,9 @@ impl Lexer {
             }
         }
         let num_str: String = self.chars[start..self.pos].iter().collect();
-        let num: f64 = num_str.parse().map_err(|_| RqlError::lex(start, format!("invalid number '{num_str}'")))?;
+        let num: f64 = num_str
+            .parse()
+            .map_err(|_| RqlError::lex(start, format!("invalid number '{num_str}'")))?;
 
         let unit = if self.pos < self.chars.len() && self.chars[self.pos].is_ascii_alphabetic() {
             let ustart = self.pos;
@@ -214,7 +236,9 @@ impl Lexer {
 
     fn read_ident_or_keyword(&mut self) -> Token {
         let start = self.pos;
-        while self.pos < self.chars.len() && (self.chars[self.pos].is_ascii_alphanumeric() || self.chars[self.pos] == '_') {
+        while self.pos < self.chars.len()
+            && (self.chars[self.pos].is_ascii_alphanumeric() || self.chars[self.pos] == '_')
+        {
             self.pos += 1;
         }
         let word: String = self.chars[start..self.pos].iter().collect();

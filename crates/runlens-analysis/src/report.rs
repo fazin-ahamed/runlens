@@ -38,17 +38,11 @@ pub struct EvidenceItem {
     pub note: String,
 }
 
-pub fn generate_bug_report(
-    analysis: &SessionAnalysis,
-    context: &RunContext,
-) -> Option<BugReport> {
+pub fn generate_bug_report(analysis: &SessionAnalysis, context: &RunContext) -> Option<BugReport> {
     if analysis.verdict == Verdict::Clean {
         return None;
     }
-    let mut title = format!(
-        "RunLens analysis: {}",
-        analysis.verdict.as_str()
-    );
+    let mut title = format!("RunLens analysis: {}", analysis.verdict.as_str());
     if let Some(desc) = context.description.as_deref() {
         if !desc.is_empty() {
             title = format!("{desc}: {}", analysis.verdict.as_str());
@@ -97,12 +91,7 @@ fn lead_divergence(analysis: &SessionAnalysis) -> String {
     }
 }
 
-fn render_markdown(
-    analysis: &SessionAnalysis,
-    context: &RunContext,
-    title: &str,
-    summary: &str,
-) -> String {
+fn render_markdown(analysis: &SessionAnalysis, context: &RunContext, title: &str, summary: &str) -> String {
     let mut out = String::new();
     out.push_str("# ");
     out.push_str(title);
@@ -144,8 +133,7 @@ fn render_markdown(
     }
     out.push_str(&format!(
         "- **Event counts:** baseline {}, candidate {}\n",
-        analysis.comparison.baseline_event_count,
-        analysis.comparison.candidate_event_count
+        analysis.comparison.baseline_event_count, analysis.comparison.candidate_event_count
     ));
     out.push_str("\n## Divergences\n\n");
     if analysis.top_divergences.is_empty() {
@@ -173,11 +161,11 @@ fn render_markdown(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::RunContext;
+    use super::*;
     use crate::analyze_sessions;
-    use runlens_core::model::{EventSource, PrivacyClassification, Severity};
     use chrono::{TimeZone, Utc};
+    use runlens_core::model::{EventSource, PrivacyClassification, Severity};
 
     fn ev(seq: u64, kind: &str, severity: Severity) -> runlens_core::model::Event {
         let ts = Utc.timestamp_opt(0, 0).single().unwrap();
@@ -240,11 +228,7 @@ mod tests {
         let analysis = analyze_sessions(&base, &cand);
         let ctx = RunContext::new("01H00000000000000000000003");
         let report = generate_bug_report(&analysis, &ctx).expect("report exists");
-        let seqs: Vec<Option<u64>> = report
-            .evidence
-            .iter()
-            .map(|e| e.event_sequence)
-            .collect();
+        let seqs: Vec<Option<u64>> = report.evidence.iter().map(|e| e.event_sequence).collect();
         assert!(seqs.iter().any(|s| s.is_some()));
     }
 }

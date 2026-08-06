@@ -2,10 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub const FORMAT_VERSION: &str = "runlens.bundle@1.0.0";
 
-pub const COMPATIBLE_VERSIONS: &[&str] = &[
-    "runlens.bundle@1.0.0",
-    "runlens.bundle@1",
-];
+pub const COMPATIBLE_VERSIONS: &[&str] = &["runlens.bundle@1.0.0", "runlens.bundle@1"];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BundleManifest {

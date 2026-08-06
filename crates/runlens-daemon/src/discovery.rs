@@ -35,9 +35,6 @@ pub async fn read_port(base: &std::path::Path) -> Result<u16> {
     let content = tokio::fs::read_to_string(&path)
         .await
         .context("reading daemon port file")?;
-    let port: u16 = content
-        .trim()
-        .parse()
-        .context("parsing daemon port")?;
+    let port: u16 = content.trim().parse().context("parsing daemon port")?;
     Ok(port)
 }

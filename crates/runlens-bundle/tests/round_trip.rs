@@ -1,11 +1,9 @@
 #![allow(clippy::str_to_string)]
 
+use runlens_bundle::{export_session, import_session, ExportOptions, ImportOptions};
 use runlens_core::chain;
 use runlens_core::identifier::Identifier;
-use runlens_core::model::{
-    Event, EventSource, PrivacyClassification, ProjectInfo, SessionState, Severity,
-};
-use runlens_bundle::{export_session, import_session, ExportOptions, ImportOptions};
+use runlens_core::model::{Event, EventSource, PrivacyClassification, ProjectInfo, SessionState, Severity};
 use runlens_storage::Repository;
 
 fn ev(seq: u64, kind: &str, session_id: &str, project_id: &str) -> Event {

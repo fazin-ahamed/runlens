@@ -93,13 +93,14 @@ pub fn compare_sessions(baseline: &[Event], candidate: &[Event]) -> Comparison {
         if *base == 0 && *cand > 0 {
             divs.push(Divergence {
                 title: format!("New event kind appeared: {kind}"),
-                summary: format!("The candidate session emitted {cand} `{kind}` events that did not appear in the baseline."),
+                summary: format!(
+                    "The candidate session emitted {cand} `{kind}` events that did not appear in the baseline."
+                ),
                 severity: DivergenceSeverity::Moderate,
-                factors: vec![
-                    DivergenceFactor::new(5, format!(
-                        "`{kind}` appeared {cand} times in the candidate and 0 times in the baseline.",
-                    )),
-                ],
+                factors: vec![DivergenceFactor::new(
+                    5,
+                    format!("`{kind}` appeared {cand} times in the candidate and 0 times in the baseline.",),
+                )],
                 evidence_event_sequence: None,
             });
         } else if base != cand && cand > &base {
@@ -110,11 +111,10 @@ pub fn compare_sessions(baseline: &[Event], candidate: &[Event]) -> Comparison {
                     "`{kind}` fired {base} times in baseline and {cand} times in candidate (delta {delta})."
                 ),
                 severity: DivergenceSeverity::Low,
-                factors: vec![
-                    DivergenceFactor::new(3, format!(
-                        "count delta across the session is {delta}.",
-                    )),
-                ],
+                factors: vec![DivergenceFactor::new(
+                    3,
+                    format!("count delta across the session is {delta}.",),
+                )],
                 evidence_event_sequence: None,
             });
         }
@@ -134,7 +134,13 @@ pub fn compare_sessions(baseline: &[Event], candidate: &[Event]) -> Comparison {
                 ),
                 severity: DivergenceSeverity::High,
                 factors: vec![
-                    DivergenceFactor::new(8, format!("event at sequence #{} precedes first failure at #{} by <= 5 steps.", prev.sequence, first_err)),
+                    DivergenceFactor::new(
+                        8,
+                        format!(
+                            "event at sequence #{} precedes first failure at #{} by <= 5 steps.",
+                            prev.sequence, first_err
+                        ),
+                    ),
                     DivergenceFactor::new(3, format!("`{}` did not appear in baseline run.", prev.kind)),
                 ],
                 evidence_event_sequence: Some(prev.sequence),
@@ -228,10 +234,7 @@ mod tests {
             ev(2, 3, "process.exited", Severity::Fatal),
         ];
         let r = compare_sessions(&base, &cand);
-        assert!(r
-            .divergences
-            .iter()
-            .any(|d| d.title.contains("immediately preceded")));
+        assert!(r.divergences.iter().any(|d| d.title.contains("immediately preceded")));
     }
 
     #[test]
@@ -246,16 +249,8 @@ mod tests {
         for d in &r.divergences {
             assert!(!d.factors.is_empty(), "{} has no factors", d.title);
         }
-        let max_score = r
-            .divergences
-            .first()
-            .map(|d| d.total_score())
-            .unwrap_or_default();
-        let min_score = r
-            .divergences
-            .last()
-            .map(|d| d.total_score())
-            .unwrap_or_default();
+        let max_score = r.divergences.first().map(|d| d.total_score()).unwrap_or_default();
+        let min_score = r.divergences.last().map(|d| d.total_score()).unwrap_or_default();
         assert!(max_score >= min_score);
     }
 }

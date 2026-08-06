@@ -35,11 +35,17 @@ impl FailureSignature {
 
 static NOISE_PATTERNS: &[(&str, &str)] = &[
     (r"\b0x[0-9a-fA-F]{4,}\b", "<HEX>"),
-    (r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", "<UUID>"),
+    (
+        r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b",
+        "<UUID>",
+    ),
     (r"\bpid\s*=\s*\d+\b", "<PID>"),
     (r"([\w./-]+\.[a-zA-Z]{1,8}):(\d+)(?::(\d+))?", "$1:<LINE>"),
     (r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", "<IP>"),
-    (r#"(?:[A-Z]:\\(?:Users|Windows|ProgramData|Program Files)[^\s"']+)"#, "<WINPATH>"),
+    (
+        r#"(?:[A-Z]:\\(?:Users|Windows|ProgramData|Program Files)[^\s"']+)"#,
+        "<WINPATH>",
+    ),
     (r#"/(?:home|Users|tmp|var|opt|root|srv)/[^\s"']+"#, "<PATH>"),
     (r"\b\d{2}:\d{2}:\d{2}(?:\.\d+)?\b", "<TIME>"),
     (r"\b\d{4}-\d{2}-\d{2}\b", "<DATE>"),
@@ -130,7 +136,8 @@ mod tests {
 
     #[test]
     fn normalises_paths_and_pids() {
-        let s = "Failed at /home/alice/projects/foo/src/main.rs:123 pid=12345 UUID=550e8400-e29b-41d4-a716-446655440000";
+        let s =
+            "Failed at /home/alice/projects/foo/src/main.rs:123 pid=12345 UUID=550e8400-e29b-41d4-a716-446655440000";
         let out = normalise_string(s);
         assert!(out.contains("<PATH>"));
         assert!(out.contains("<PID>"));
@@ -143,8 +150,20 @@ mod tests {
 
     #[test]
     fn signature_groups_equivalent_errors() {
-        let python_error = make_signature("NullPointerException", "at /Users/bob/x/y.py:25", None, Some(-11), Some("python"));
-        let twin_error = make_signature("NullPointerException", "at /Users/alice/x/y.py:99", None, Some(-11), Some("python"));
+        let python_error = make_signature(
+            "NullPointerException",
+            "at /Users/bob/x/y.py:25",
+            None,
+            Some(-11),
+            Some("python"),
+        );
+        let twin_error = make_signature(
+            "NullPointerException",
+            "at /Users/alice/x/y.py:99",
+            None,
+            Some(-11),
+            Some("python"),
+        );
         assert_eq!(python_error.key(), twin_error.key());
     }
 

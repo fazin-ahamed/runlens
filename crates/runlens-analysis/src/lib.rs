@@ -41,12 +41,7 @@ pub fn analyze_sessions(baseline: &[Event], candidate: &[Event]) -> SessionAnaly
     } else {
         Verdict::Suspicious
     };
-    let top_divergences = comparison
-        .divergences
-        .iter()
-        .take(10)
-        .cloned()
-        .collect();
+    let top_divergences = comparison.divergences.iter().take(10).cloned().collect();
     SessionAnalysis {
         verdict,
         comparison,
@@ -57,8 +52,8 @@ pub fn analyze_sessions(baseline: &[Event], candidate: &[Event]) -> SessionAnaly
 #[cfg(test)]
 mod tests {
     use super::*;
-    use runlens_core::model::{EventSource, PrivacyClassification, Severity};
     use chrono::{TimeZone, Utc};
+    use runlens_core::model::{EventSource, PrivacyClassification, Severity};
 
     fn ev(seq: u64, kind: &str, severity: Severity) -> Event {
         let ts = Utc.timestamp_opt(0, 0).single().unwrap();
@@ -101,10 +96,7 @@ mod tests {
         ];
         let a = analyze_sessions(&base, &cand);
         assert_eq!(a.verdict, Verdict::Broken);
-        assert!(a
-            .top_divergences
-            .iter()
-            .any(|d| d.title.contains("New failure kind")));
+        assert!(a.top_divergences.iter().any(|d| d.title.contains("New failure kind")));
     }
 
     #[test]
@@ -124,11 +116,7 @@ mod tests {
             ev(2, "process.exited", Severity::Fatal),
         ];
         let a = analyze_sessions(&base, &cand);
-        let scores: Vec<u32> = a
-            .top_divergences
-            .iter()
-            .map(|d| d.total_score())
-            .collect();
+        let scores: Vec<u32> = a.top_divergences.iter().map(|d| d.total_score()).collect();
         let mut sorted = scores.clone();
         sorted.sort_by(|a, b| b.cmp(a));
         assert_eq!(scores, sorted);

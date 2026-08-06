@@ -22,12 +22,33 @@ pub fn seal(event: &mut Event, previous_hash: &str) -> String {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VerifyError {
-    BadGenesis { event_index: u64, found: String },
-    BrokenLink { event_index: u64, found: String, expected: String },
-    HashMismatch { event_index: u64, found: String, expected: String },
-    DuplicateEvent { event_index: u64 },
-    SequenceGap { event_index: u64, expected: u64, found: u64 },
-    TimeOutOfOrder { event_index: u64, expected: i64, found: i64 },
+    BadGenesis {
+        event_index: u64,
+        found: String,
+    },
+    BrokenLink {
+        event_index: u64,
+        found: String,
+        expected: String,
+    },
+    HashMismatch {
+        event_index: u64,
+        found: String,
+        expected: String,
+    },
+    DuplicateEvent {
+        event_index: u64,
+    },
+    SequenceGap {
+        event_index: u64,
+        expected: u64,
+        found: u64,
+    },
+    TimeOutOfOrder {
+        event_index: u64,
+        expected: i64,
+        found: i64,
+    },
 }
 
 #[derive(Debug, Error)]
@@ -43,20 +64,20 @@ pub fn verify_chain(events: &[Event]) -> Result<(), VerifyError> {
     for (i, e) in events.iter().enumerate() {
         let idx = i as u64;
         match &e.previous_hash {
-            Some(prev) if prev == &expected_prev => {}
+            Some(prev) if prev == &expected_prev => {},
             Some(prev) => {
                 return Err(VerifyError::BrokenLink {
                     event_index: idx,
                     found: prev.clone(),
                     expected: expected_prev,
                 });
-            }
+            },
             None => {
                 return Err(VerifyError::BadGenesis {
                     event_index: idx,
                     found: String::new(),
                 });
-            }
+            },
         }
         if e.sequence != expected_seq {
             return Err(VerifyError::SequenceGap {
@@ -77,21 +98,21 @@ pub fn verify_chain(events: &[Event]) -> Result<(), VerifyError> {
         expected_ts = Some(e.utc_timestamp.timestamp());
         let actual = compute_hash(e, &expected_prev);
         match &e.current_hash {
-            Some(curr) if curr == &actual => {}
+            Some(curr) if curr == &actual => {},
             Some(curr) => {
                 return Err(VerifyError::HashMismatch {
                     event_index: idx,
                     found: curr.clone(),
                     expected: actual,
                 });
-            }
+            },
             None => {
                 return Err(VerifyError::HashMismatch {
                     event_index: idx,
                     found: String::new(),
                     expected: actual,
                 });
-            }
+            },
         }
         expected_prev = actual;
         expected_seq += 1;
@@ -147,7 +168,9 @@ mod tests {
 
     #[test]
     fn seal_and_verify() {
-        let mut chain: Vec<Event> = (0..5).map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample")).collect();
+        let mut chain: Vec<Event> = (0..5)
+            .map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample"))
+            .collect();
         let final_hash = seal_chain(&mut chain);
         assert!(!final_hash.is_empty());
         for e in &chain {
@@ -159,28 +182,37 @@ mod tests {
 
     #[test]
     fn tamper_after_sealing_is_detected() {
-        let mut chain: Vec<Event> = (0..3).map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample")).collect();
+        let mut chain: Vec<Event> = (0..3)
+            .map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample"))
+            .collect();
         seal_chain(&mut chain);
         chain[1].payload = serde_json::json!({"sequence": 1, "tampered": true});
         match verify_chain(&chain) {
-            Err(VerifyError::HashMismatch { event_index: 1, .. }) => {}
+            Err(VerifyError::HashMismatch { event_index: 1, .. }) => {},
             other => panic!("expected tamper at 1, got {other:?}"),
         }
     }
 
     #[test]
     fn reorder_is_detected() {
-        let mut chain: Vec<Event> = (0..3).map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample")).collect();
+        let mut chain: Vec<Event> = (0..3)
+            .map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample"))
+            .collect();
         seal_chain(&mut chain);
         chain.swap(0, 2);
-        assert!(matches!(verify_chain(&chain), Err(VerifyError::HashMismatch { .. })
-            | Err(VerifyError::BrokenLink { .. })
-            | Err(VerifyError::SequenceGap { .. })));
+        assert!(matches!(
+            verify_chain(&chain),
+            Err(VerifyError::HashMismatch { .. })
+                | Err(VerifyError::BrokenLink { .. })
+                | Err(VerifyError::SequenceGap { .. })
+        ));
     }
 
     #[test]
     fn delete_event_is_detected() {
-        let mut chain: Vec<Event> = (0..4).map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample")).collect();
+        let mut chain: Vec<Event> = (0..4)
+            .map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample"))
+            .collect();
         seal_chain(&mut chain);
         chain.remove(2);
         assert!(verify_chain(&chain).is_err());
@@ -188,7 +220,9 @@ mod tests {
 
     #[test]
     fn insertion_is_detected() {
-        let mut chain: Vec<Event> = (0..3).map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample")).collect();
+        let mut chain: Vec<Event> = (0..3)
+            .map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample"))
+            .collect();
         seal_chain(&mut chain);
         chain.insert(1, make(99, 1_700_000_500, "test.injected"));
         assert!(verify_chain(&chain).is_err());
@@ -196,7 +230,9 @@ mod tests {
 
     #[test]
     fn duplicate_event_is_detected() {
-        let mut chain: Vec<Event> = (0..3).map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample")).collect();
+        let mut chain: Vec<Event> = (0..3)
+            .map(|i| make(i, 1_700_000_000i64 + i as i64, "test.sample"))
+            .collect();
         seal_chain(&mut chain);
         let dup = chain[1].clone();
         chain.insert(1, dup);
@@ -211,7 +247,7 @@ mod tests {
         ];
         seal_chain(&mut chain);
         match verify_chain(&chain) {
-            Err(VerifyError::TimeOutOfOrder { .. }) => {}
+            Err(VerifyError::TimeOutOfOrder { .. }) => {},
             other => panic!("expected time-out-of-order, got {other:?}"),
         }
     }

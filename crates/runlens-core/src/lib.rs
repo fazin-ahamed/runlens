@@ -1,6 +1,5 @@
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms)]
-
 #![allow(
     clippy::doc_markdown,
     clippy::str_to_string,
@@ -18,7 +17,7 @@
     clippy::needless_borrow,
     clippy::unnecessary_sort_by,
     clippy::needless_borrows_for_generic_args,
-    clippy::if_same_then_else,
+    clippy::if_same_then_else
 )]
 
 pub mod canonical;

@@ -25,18 +25,22 @@ impl BisectCache {
             crate::predicate::PredicateResult::Good => {
                 self.good = Some(commit.to_string());
                 self.entries.insert(commit.to_string(), "good".to_string());
-            }
+            },
             crate::predicate::PredicateResult::Bad => {
                 self.bad = Some(commit.to_string());
                 self.entries.insert(commit.to_string(), "bad".to_string());
-            }
+            },
             crate::predicate::PredicateResult::Inconclusive => {
                 self.entries.insert(commit.to_string(), "inconclusive".to_string());
-            }
+            },
         }
     }
 
     pub fn len(&self) -> usize {
         self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
     }
 }

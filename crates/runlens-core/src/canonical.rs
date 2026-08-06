@@ -16,18 +16,12 @@ pub fn chain_input_bytes(event: &Event) -> Vec<u8> {
     v.insert("sequence".into(), Value::Number(event.sequence.into()));
     v.insert("source".into(), Value::String(event.source.as_str().into()));
     v.insert("kind".into(), Value::String(event.kind.as_str().into()));
-    v.insert(
-        "severity".into(),
-        Value::String(event.severity.as_str().into()),
-    );
+    v.insert("severity".into(), Value::String(event.severity.as_str().into()));
     v.insert(
         "utc_timestamp".into(),
         Value::String(format_rfc3339_nanos(event.utc_timestamp)),
     );
-    v.insert(
-        "monotonic_ns".into(),
-        Value::Number(event.monotonic_ns.into()),
-    );
+    v.insert("monotonic_ns".into(), Value::Number(event.monotonic_ns.into()));
     if let Some(d) = event.duration_ns {
         v.insert("duration_ns".into(), Value::Number(d.into()));
     }
@@ -37,10 +31,7 @@ pub fn chain_input_bytes(event: &Event) -> Vec<u8> {
     if let Some(p) = &event.parent_event_id {
         v.insert("parent_event_id".into(), Value::String(p.clone()));
     }
-    v.insert(
-        "payload_version".into(),
-        Value::Number(event.payload_version.into()),
-    );
+    v.insert("payload_version".into(), Value::Number(event.payload_version.into()));
     v.insert("payload".into(), event.payload.clone());
     v.insert(
         "classification".into(),
@@ -61,8 +52,8 @@ pub fn full_canonical_bytes(event: &Event) -> Vec<u8> {
     if let Some(curr) = &event.current_hash {
         v.insert("current_hash".into(), Value::String(curr.clone()));
     }
-    let inner: serde_json::Map<String, Value> = serde_json::from_slice(&chain_input_bytes(event))
-        .expect("round-trip invariant");
+    let inner: serde_json::Map<String, Value> =
+        serde_json::from_slice(&chain_input_bytes(event)).expect("round-trip invariant");
     for (k, vv) in inner {
         v.insert(k, vv);
     }
@@ -74,10 +65,7 @@ pub fn full_canonical_bytes(event: &Event) -> Vec<u8> {
 pub fn format_rfc3339_nanos(t: DateTime<Utc>) -> String {
     let secs = t.timestamp();
     let nsec = t.timestamp_subsec_nanos();
-    let dt = Utc
-        .timestamp_opt(secs, nsec)
-        .single()
-        .unwrap_or_else(Utc::now);
+    let dt = Utc.timestamp_opt(secs, nsec).single().unwrap_or_else(Utc::now);
     // Always emit Z so the form is unambiguous across machines.
     let mut s = dt.format("%Y-%m-%dT%H:%M:%S%.9f").to_string();
     s.push('Z');
@@ -130,7 +118,7 @@ fn write_value(s: &mut String, v: &Value) {
             } else {
                 s.push_str("0");
             }
-        }
+        },
         Value::String(st) => {
             s.push('"');
             for ch in st.chars() {
@@ -147,7 +135,7 @@ fn write_value(s: &mut String, v: &Value) {
                 }
             }
             s.push('"');
-        }
+        },
         Value::Array(a) => {
             s.push('[');
             for (i, elem) in a.iter().enumerate() {
@@ -157,7 +145,7 @@ fn write_value(s: &mut String, v: &Value) {
                 write_value(s, elem);
             }
             s.push(']');
-        }
+        },
         Value::Object(m) => {
             let mut entries: Vec<(&String, &Value)> = m.iter().collect();
             entries.sort_by(|a, b| a.0.cmp(b.0));
@@ -171,7 +159,7 @@ fn write_value(s: &mut String, v: &Value) {
                 write_value(s, v);
             }
             s.push('}');
-        }
+        },
     }
 }
 

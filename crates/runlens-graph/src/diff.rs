@@ -21,19 +21,11 @@ pub fn compare(a: &EventGraph, b: &EventGraph) -> GraphDiff {
     let a_ids: std::collections::HashSet<&str> = a.nodes.iter().map(|n| n.id.as_str()).collect();
     let b_ids: std::collections::HashSet<&str> = b.nodes.iter().map(|n| n.id.as_str()).collect();
 
-    let added_nodes: Vec<String> = b_ids
-        .difference(&a_ids)
-        .map(|s| (*s).to_string())
-        .collect();
-    let removed_nodes: Vec<String> = a_ids
-        .difference(&b_ids)
-        .map(|s| (*s).to_string())
-        .collect();
+    let added_nodes: Vec<String> = b_ids.difference(&a_ids).map(|s| (*s).to_string()).collect();
+    let removed_nodes: Vec<String> = a_ids.difference(&b_ids).map(|s| (*s).to_string()).collect();
 
-    let a_edges: std::collections::HashSet<String> =
-        a.edges.iter().map(|e| format!("{}->{}", e.from, e.to)).collect();
-    let b_edges: std::collections::HashSet<String> =
-        b.edges.iter().map(|e| format!("{}->{}", e.from, e.to)).collect();
+    let a_edges: std::collections::HashSet<String> = a.edges.iter().map(|e| format!("{}->{}", e.from, e.to)).collect();
+    let b_edges: std::collections::HashSet<String> = b.edges.iter().map(|e| format!("{}->{}", e.from, e.to)).collect();
 
     let added_edges: Vec<String> = b_edges.difference(&a_edges).cloned().collect();
     let removed_edges: Vec<String> = a_edges.difference(&b_edges).cloned().collect();

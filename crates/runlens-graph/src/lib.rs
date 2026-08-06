@@ -4,7 +4,7 @@
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms)]
 
-pub mod graph;
 pub mod critical;
-pub mod span;
 pub mod diff;
+pub mod graph;
+pub mod span;

@@ -26,7 +26,12 @@ pub struct DaemonState {
 }
 
 impl DaemonState {
-    pub fn new(db_path: String, ingest: IngestHandle, subscriptions: Arc<SubscriptionManager>, repo: Repository) -> Self {
+    pub fn new(
+        db_path: String,
+        ingest: IngestHandle,
+        subscriptions: Arc<SubscriptionManager>,
+        repo: Repository,
+    ) -> Self {
         Self {
             started_at: Utc::now(),
             db_path,

@@ -58,10 +58,7 @@ pub fn default_patterns() -> Vec<SecretPattern> {
             SecretKind::AuthorizationHeader,
             r"(?i)\bauthorization\s*[:=]\s*(?:bearer|basic|token)\s+[A-Za-z0-9._\-=]{8,}",
         ),
-        pattern(
-            SecretKind::BearerToken,
-            r"(?i)\bbearer\s+[A-Za-z0-9._\-]{16,}",
-        ),
+        pattern(SecretKind::BearerToken, r"(?i)\bbearer\s+[A-Za-z0-9._\-]{16,}"),
         pattern(
             SecretKind::PrivateKeyBlock,
             r"-----BEGIN (?:RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY-----",
@@ -146,7 +143,7 @@ fn mask_in_place(s: String, kind: SecretKind) -> String {
             } else {
                 format!("{}***", &s[..1])
             }
-        }
+        },
         SecretKind::PrivateIpAddress => {
             let parts: Vec<&str> = s.split('.').collect();
             if parts.len() == 4 {
@@ -154,14 +151,16 @@ fn mask_in_place(s: String, kind: SecretKind) -> String {
             } else {
                 "x.x.x.x".into()
             }
-        }
-        SecretKind::AbsoluteHomePath => {
-            s.replacen(&s.trim_start_matches(|c: char| c.is_ascii_alphanumeric() || c == '_' || c == '.' || c == '-'), "~", 1)
-        }
+        },
+        SecretKind::AbsoluteHomePath => s.replacen(
+            &s.trim_start_matches(|c: char| c.is_ascii_alphanumeric() || c == '_' || c == '.' || c == '-'),
+            "~",
+            1,
+        ),
         _ => {
             let (left, mid, right) = (&s[..2], "*".repeat(s.len().saturating_sub(6).min(8)), &s[s.len() - 2..]);
             format!("{left}{mid}{right}")
-        }
+        },
     }
 }
 
@@ -218,36 +217,29 @@ fn deduplicate_overlaps(findings: &mut Vec<Finding>) {
     *findings = kept;
 }
 
-pub fn scan_json(
-    value: &serde_json::Value,
-    patterns: &[SecretPattern],
-) -> (serde_json::Value, Vec<Finding>) {
+pub fn scan_json(value: &serde_json::Value, patterns: &[SecretPattern]) -> (serde_json::Value, Vec<Finding>) {
     let mut findings = Vec::new();
     let redacted = walk(value, patterns, &mut findings);
     (redacted, findings)
 }
 
-fn walk(
-    node: &serde_json::Value,
-    patterns: &[SecretPattern],
-    findings: &mut Vec<Finding>,
-) -> serde_json::Value {
+fn walk(node: &serde_json::Value, patterns: &[SecretPattern], findings: &mut Vec<Finding>) -> serde_json::Value {
     match node {
         serde_json::Value::String(s) => {
             let (_, mut found) = scan_string(s, patterns);
             findings.append(&mut found);
             serde_json::Value::String(s.clone())
-        }
+        },
         serde_json::Value::Array(a) => {
             serde_json::Value::Array(a.iter().map(|v| walk(v, patterns, findings)).collect())
-        }
+        },
         serde_json::Value::Object(m) => {
             let mut out = serde_json::Map::new();
             for (k, v) in m {
                 out.insert(k.clone(), walk(v, patterns, findings));
             }
             serde_json::Value::Object(out)
-        }
+        },
         other => other.clone(),
     }
 }
@@ -263,10 +255,7 @@ pub fn mask_absolute_path(path: &str, project_root: &str, _user_name: &str) -> S
     for prefix in &["/home/", "/Users/", r"C:\Users\", r"c:\users\"] {
         if let Some(rest) = masked.strip_prefix(prefix) {
             let boundary = rest.find(|c: char| c == '\\' || c == '/').unwrap_or(rest.len());
-            masked = format!(
-                "~{}",
-                rest[boundary..].replace('\\', "/")
-            );
+            masked = format!("~{}", rest[boundary..].replace('\\', "/"));
         }
     }
     masked
@@ -343,7 +332,11 @@ mod tests {
 
     #[test]
     fn masks_home_path() {
-        let m = mask_absolute_path("/home/alice/projects/foo/src/main.rs", "/home/alice/projects/foo", "alice");
+        let m = mask_absolute_path(
+            "/home/alice/projects/foo/src/main.rs",
+            "/home/alice/projects/foo",
+            "alice",
+        );
         assert_eq!(m, "/$PROJECT/src/main.rs");
     }
 

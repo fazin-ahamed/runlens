@@ -55,19 +55,39 @@ impl fmt::Display for JsonRpcError {
 
 impl JsonRpcError {
     pub fn parse_error(msg: impl Into<String>) -> Self {
-        Self { code: -32700, message: msg.into(), data: None }
+        Self {
+            code: -32700,
+            message: msg.into(),
+            data: None,
+        }
     }
     pub fn invalid_request(msg: impl Into<String>) -> Self {
-        Self { code: -32600, message: msg.into(), data: None }
+        Self {
+            code: -32600,
+            message: msg.into(),
+            data: None,
+        }
     }
     pub fn method_not_found(msg: impl Into<String>) -> Self {
-        Self { code: -32601, message: msg.into(), data: None }
+        Self {
+            code: -32601,
+            message: msg.into(),
+            data: None,
+        }
     }
     pub fn invalid_params(msg: impl Into<String>) -> Self {
-        Self { code: -32602, message: msg.into(), data: None }
+        Self {
+            code: -32602,
+            message: msg.into(),
+            data: None,
+        }
     }
     pub fn internal_error(msg: impl Into<String>) -> Self {
-        Self { code: -32603, message: msg.into(), data: None }
+        Self {
+            code: -32603,
+            message: msg.into(),
+            data: None,
+        }
     }
 }
 
@@ -136,21 +156,21 @@ impl IpcMessage {
     }
 
     pub fn parse(data: &[u8]) -> Result<Self, JsonRpcError> {
-        let parsed: Value = serde_json::from_slice(data)
-            .map_err(|e| JsonRpcError::parse_error(format!("malformed json: {e}")))?;
-        let obj = parsed.as_object()
+        let parsed: Value =
+            serde_json::from_slice(data).map_err(|e| JsonRpcError::parse_error(format!("malformed json: {e}")))?;
+        let obj = parsed
+            .as_object()
             .ok_or_else(|| JsonRpcError::parse_error("body is not an object"))?;
 
-        let rpc_ver = obj.get("jsonrpc")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let rpc_ver = obj.get("jsonrpc").and_then(|v| v.as_str()).unwrap_or("");
         if rpc_ver != JSON_RPC_VERSION && !rpc_ver.is_empty() {
-            return Err(JsonRpcError::invalid_request(
-                format!("unsupported jsonrpc version: {rpc_ver}"),
-            ));
+            return Err(JsonRpcError::invalid_request(format!(
+                "unsupported jsonrpc version: {rpc_ver}"
+            )));
         }
 
-        let method = obj.get("method")
+        let method = obj
+            .get("method")
             .and_then(|v| v.as_str())
             .ok_or_else(|| JsonRpcError::invalid_request("missing method field"))?
             .to_owned();
@@ -179,13 +199,7 @@ impl IpcMessage {
 pub mod responses {
     use serde_json::Value;
 
-    pub fn status(
-        daemon_version: &str,
-        pid: u64,
-        uptime_secs: u64,
-        active_sessions: usize,
-        db_path: &str,
-    ) -> Value {
+    pub fn status(daemon_version: &str, pid: u64, uptime_secs: u64, active_sessions: usize, db_path: &str) -> Value {
         serde_json::json!({
             "version": daemon_version,
             "pid": pid,

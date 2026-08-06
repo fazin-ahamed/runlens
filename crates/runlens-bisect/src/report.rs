@@ -18,10 +18,7 @@ pub fn generate_report(result: &BisectResult) -> BisectReport {
             "first bad commit {commit} found after {} evaluations",
             result.evaluations
         ),
-        None => format!(
-            "no regression found in range ({} evaluations)",
-            result.evaluations
-        ),
+        None => format!("no regression found in range ({} evaluations)", result.evaluations),
     };
     BisectReport { result: message }
 }

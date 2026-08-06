@@ -31,10 +31,7 @@ impl SubscriptionManager {
         }
     }
 
-    pub async fn subscribe(
-        &self,
-        session_id: Option<String>,
-    ) -> (SubscriptionId, broadcast::Receiver<EventV2>) {
+    pub async fn subscribe(&self, session_id: Option<String>) -> (SubscriptionId, broadcast::Receiver<EventV2>) {
         let id = SubscriptionId(self.next_id.fetch_add(1, Ordering::SeqCst));
         let (sender, rx) = broadcast::channel(Self::CHANNEL_CAPACITY);
         let mut inner = self.inner.lock().await;

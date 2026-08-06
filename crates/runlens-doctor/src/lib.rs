@@ -1,4 +1,4 @@
-﻿#![forbid(unsafe_code)]
+#![forbid(unsafe_code)]
 #![warn(rust_2018_idioms)]
 
 use serde::{Deserialize, Serialize};
@@ -126,7 +126,9 @@ impl Doctor {
             arch: std::env::consts::ARCH.to_owned(),
             rust_version: std::env::var("CARGO_PKG_RUST_VERSION").unwrap_or_default(),
             runlens_version: env!("CARGO_PKG_VERSION").to_owned(),
-            cwd: std::env::current_dir().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
+            cwd: std::env::current_dir()
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_default(),
             free_disk_mb: 0,
             total_disk_mb: 0,
             memory_mb: 0,
@@ -155,8 +157,12 @@ pub struct SystemInfo {
 
 pub struct DaemonCheck;
 impl HealthCheck for DaemonCheck {
-    fn name(&self) -> &str { "daemon" }
-    fn category(&self) -> CheckCategory { CheckCategory::Core }
+    fn name(&self) -> &str {
+        "daemon"
+    }
+    fn category(&self) -> CheckCategory {
+        CheckCategory::Core
+    }
     fn run(&self) -> CheckResult {
         let pid_file = std::path::Path::new(".runlens/daemon.pid");
         if !pid_file.exists() {
@@ -182,7 +188,7 @@ impl HealthCheck for DaemonCheck {
                     suggestion: Some("Remove .runlens/daemon.pid and restart the daemon.".into()),
                     details: None,
                 };
-            }
+            },
         };
 
         #[cfg(unix)]
@@ -223,8 +229,12 @@ impl HealthCheck for DaemonCheck {
 
 pub struct DatabaseCheck;
 impl HealthCheck for DatabaseCheck {
-    fn name(&self) -> &str { "database" }
-    fn category(&self) -> CheckCategory { CheckCategory::Storage }
+    fn name(&self) -> &str {
+        "database"
+    }
+    fn category(&self) -> CheckCategory {
+        CheckCategory::Storage
+    }
     fn run(&self) -> CheckResult {
         let db_path = ".runlens/runlens.sqlite";
         if std::path::Path::new(db_path).exists() {
@@ -251,12 +261,17 @@ impl HealthCheck for DatabaseCheck {
 
 pub struct DiskSpaceCheck;
 impl HealthCheck for DiskSpaceCheck {
-    fn name(&self) -> &str { "disk-space" }
-    fn category(&self) -> CheckCategory { CheckCategory::Storage }
+    fn name(&self) -> &str {
+        "disk-space"
+    }
+    fn category(&self) -> CheckCategory {
+        CheckCategory::Storage
+    }
     fn run(&self) -> CheckResult {
         #[cfg(windows)]
         fn get_free_space() -> u64 {
-            std::env::current_dir().ok()
+            std::env::current_dir()
+                .ok()
                 .and_then(|p| p.ancestors().last().map(|r| r.to_path_buf()))
                 .map(|p| {
                     let _ = p;
@@ -266,7 +281,8 @@ impl HealthCheck for DiskSpaceCheck {
         }
         #[cfg(unix)]
         fn get_free_space() -> u64 {
-            std::env::current_dir().ok()
+            std::env::current_dir()
+                .ok()
                 .and_then(|p| {
                     use std::os::unix::fs::MetadataExt;
                     p.metadata().ok().map(|m| m.size())
@@ -299,8 +315,12 @@ impl HealthCheck for DiskSpaceCheck {
 
 pub struct FilePermissionsCheck;
 impl HealthCheck for FilePermissionsCheck {
-    fn name(&self) -> &str { "file-permissions" }
-    fn category(&self) -> CheckCategory { CheckCategory::Storage }
+    fn name(&self) -> &str {
+        "file-permissions"
+    }
+    fn category(&self) -> CheckCategory {
+        CheckCategory::Storage
+    }
     fn run(&self) -> CheckResult {
         let runlens_dir = ".runlens";
         if std::path::Path::new(runlens_dir).exists() {
@@ -316,7 +336,7 @@ impl HealthCheck for FilePermissionsCheck {
                         suggestion: None,
                         details: None,
                     }
-                }
+                },
                 Err(e) => CheckResult {
                     name: self.name().into(),
                     category: self.category(),

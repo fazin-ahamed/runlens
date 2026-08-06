@@ -7,8 +7,7 @@ use tar::Builder;
 use thiserror::Error;
 
 use crate::manifest::{
-    BundleManifest, ExporterInfo, FORMAT_VERSION, InvariantSection, ManifestProject,
-    ManifestSession,
+    BundleManifest, ExporterInfo, InvariantSection, ManifestProject, ManifestSession, FORMAT_VERSION,
 };
 use runlens_core::chain;
 use runlens_storage::Repository;
@@ -37,11 +36,7 @@ impl From<std::io::Error> for ExportError {
     }
 }
 
-fn append_tar_file<W: Write>(
-    tar: &mut Builder<W>,
-    name: &str,
-    contents: &[u8],
-) -> std::io::Result<()> {
+fn append_tar_file<W: Write>(tar: &mut Builder<W>, name: &str, contents: &[u8]) -> std::io::Result<()> {
     let mut header = tar::Header::new_gnu();
     header.set_size(contents.len() as u64);
     header.set_entry_type(tar::EntryType::Regular);
@@ -50,11 +45,7 @@ fn append_tar_file<W: Write>(
     tar.append_data(&mut header, name, contents)
 }
 
-pub fn export_session(
-    repo: &Repository,
-    session_id: &str,
-    opts: ExportOptions,
-) -> Result<BundleManifest, ExportError> {
+pub fn export_session(repo: &Repository, session_id: &str, opts: ExportOptions) -> Result<BundleManifest, ExportError> {
     let session = repo
         .get_session(session_id)
         .map_err(|e| ExportError::Io(e.to_string()))?;
@@ -72,10 +63,7 @@ pub fn export_session(
         return Err(ExportError::VerifyFailed(format!("{e:?}")));
     }
 
-    let head_hash = events
-        .last()
-        .and_then(|e| e.current_hash.clone())
-        .unwrap_or_default();
+    let head_hash = events.last().and_then(|e| e.current_hash.clone()).unwrap_or_default();
 
     let manifest = BundleManifest {
         format_version: FORMAT_VERSION.to_string(),
@@ -111,23 +99,17 @@ pub fn export_session(
         redacted_event_count: 0,
     };
 
-    let out_dir = opts
-        .out_path
-        .parent()
-        .unwrap_or(&PathBuf::from("."))
-        .to_path_buf();
+    let out_dir = opts.out_path.parent().unwrap_or(&PathBuf::from(".")).to_path_buf();
     std::fs::create_dir_all(&out_dir).map_err(|e| ExportError::Io(e.to_string()))?;
 
     let file = std::fs::File::create(&opts.out_path)?;
     let encoder = GzEncoder::new(file, Compression::default());
     let mut tar = Builder::new(encoder);
 
-    let manifest_bytes = toml::to_string_pretty(&manifest)
-        .map_err(|e| ExportError::Io(e.to_string()))?;
+    let manifest_bytes = toml::to_string_pretty(&manifest).map_err(|e| ExportError::Io(e.to_string()))?;
     append_tar_file(&mut tar, "bundle.toml", manifest_bytes.as_bytes())?;
 
-    let invariants = serde_json::to_string_pretty(&manifest.invariants)
-        .map_err(|e| ExportError::Io(e.to_string()))?;
+    let invariants = serde_json::to_string_pretty(&manifest.invariants).map_err(|e| ExportError::Io(e.to_string()))?;
     append_tar_file(&mut tar, "invariants.json", invariants.as_bytes())?;
 
     for event in &events {

@@ -33,19 +33,19 @@ pub fn verify_chain(events: &[Event]) -> Result<(), IntegrityError> {
         match &event.current_hash {
             Some(h) if h == &computed => {
                 prev = h;
-            }
+            },
             Some(h) => {
                 return Err(IntegrityError::HashMismatch {
                     expected: h.clone(),
                     found: computed,
                 });
-            }
+            },
             None => {
                 return Err(IntegrityError::HashMismatch {
                     expected: "(none)".into(),
                     found: computed,
                 });
-            }
+            },
         }
     }
     Ok(())
