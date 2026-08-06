@@ -115,7 +115,11 @@ fn build_entry(category: EnvCategory, key: &str, env_value: &str) -> CapturedEnt
     hasher.update(env_value.as_bytes());
     let digest = hasher.finalize().to_hex();
     let hex = format!("blake3:{}", &digest[..digest.len().min(32)]);
-    let preview = if env_value.len() <= 32 && env_value.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-')) {
+    let preview = if env_value.len() <= 32
+        && env_value
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-'))
+    {
         Some(env_value.to_string())
     } else {
         None
@@ -173,11 +177,7 @@ mod tests {
         let mut env = IndexMap::new();
         env.insert("RUNLENS_NOTE".to_string(), "a".repeat(120));
         let fp = capture_env_fingerprint(&env);
-        let captured_entry = fp
-            .captured
-            .iter()
-            .find(|e| e.key == "RUNLENS_NOTE")
-            .expect("entry");
+        let captured_entry = fp.captured.iter().find(|e| e.key == "RUNLENS_NOTE").expect("entry");
         assert!(captured_entry.value_preview.is_none());
     }
 

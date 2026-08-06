@@ -60,15 +60,13 @@ impl FsWatcher {
         std::thread::spawn(move || loop {
             match raw_rx.recv() {
                 Ok(Ok(event)) => {
-                    let Some(out) =
-                        debounce(&mut debounced, &event, &root_buf, &ignore, &mut seq)
-                    else {
+                    let Some(out) = debounce(&mut debounced, &event, &root_buf, &ignore, &mut seq) else {
                         continue;
                     };
                     if tx.send(out).is_err() {
                         break;
                     }
-                }
+                },
                 Ok(Err(e)) => warn!(error=%e, "watcher err"),
                 Err(_) => break,
             }
@@ -88,16 +86,12 @@ impl FsWatcher {
 
 #[derive(Default, Debug)]
 struct Debounced {
-    last_seen_at: Option<std::collections::HashMap<PathBuf, Instant>>,
+    last_emit_at: std::collections::HashMap<PathBuf, Instant>,
 }
 
-fn debounce(
-    state: &mut Debounced,
-    event: &Event,
-    root: &Path,
-    ignore: &[String],
-    seq: &mut u64,
-) -> Option<FsEvent> {
+const DEBOUNCE_WINDOW: Duration = Duration::from_millis(DEBOUNCE_WINDOW_MS);
+
+fn debounce(state: &mut Debounced, event: &Event, root: &Path, ignore: &[String], seq: &mut u64) -> Option<FsEvent> {
     let mut keep = false;
     let mut action = match event.kind {
         NotifyEventKind::Create(_) => FsAction::Create,
@@ -110,19 +104,15 @@ fn debounce(
         if matches_ignore(path, ignore) || !within_root(path, root) {
             continue;
         }
-        let window = state.last_seen_at.get_or_insert_with(Default::default);
-        let last_seen = window.entry(path.clone()).or_insert(Instant::now());
-        let elapsed = last_seen.elapsed();
-        if elapsed >= Duration::from_millis(DEBOUNCE_WINDOW_MS) {
-            *last_seen = Instant::now();
+        let now = Instant::now();
+        let last_seen = state.last_emit_at.entry(path.clone()).or_insert(now);
+        let fresh = last_seen != &now && now.checked_duration_since(*last_seen).unwrap_or_default() < DEBOUNCE_WINDOW;
+        if !fresh {
+            *last_seen = now;
             keep = true;
         }
         if matches!(event.kind, NotifyEventKind::Modify(notify::event::ModifyKind::Name(_))) {
             action = FsAction::Rename;
-        }
-        if !keep && elapsed >= Duration::from_millis(500) {
-            *last_seen = Instant::now();
-            keep = true;
         }
     }
     if !keep {
@@ -187,5 +177,84 @@ mod tests {
         assert!(within_root(Path::new(r"C:\proj\src"), Path::new(r"C:\proj")));
         assert!(within_root(Path::new("/proj/src/main.rs"), Path::new("/proj")));
         assert!(!within_root(Path::new("/other/x"), Path::new("/proj")));
+    }
+
+    fn ev(path: &str, kind: NotifyEventKind) -> Event {
+        Event {
+            kind,
+            paths: vec![PathBuf::from(path)],
+            attrs: Default::default(),
+        }
+    }
+
+    #[test]
+    fn first_event_is_emitted() {
+        let mut st = Debounced::default();
+        let mut seq = 0;
+        let out = debounce(
+            &mut st,
+            &ev(
+                "/proj/a.rs",
+                NotifyEventKind::Modify(notify::event::ModifyKind::Data(notify::event::DataChange::Any)),
+            ),
+            Path::new("/proj"),
+            &[],
+            &mut seq,
+        );
+        assert!(out.is_some());
+        assert_eq!(out.unwrap().sequence, 1);
+    }
+
+    #[test]
+    fn repeat_inside_window_is_suppressed() {
+        let mut st = Debounced::default();
+        let mut seq = 0;
+        let kind = NotifyEventKind::Modify(notify::event::ModifyKind::Data(notify::event::DataChange::Any));
+        let first = debounce(&mut st, &ev("/proj/a.rs", kind), Path::new("/proj"), &[], &mut seq);
+        assert!(first.is_some());
+        let second = debounce(&mut st, &ev("/proj/a.rs", kind), Path::new("/proj"), &[], &mut seq);
+        assert!(second.is_none());
+    }
+
+    #[test]
+    fn event_after_window_is_emitted_again() {
+        let mut st = Debounced::default();
+        let mut seq = 0;
+        let kind = NotifyEventKind::Modify(notify::event::ModifyKind::Data(notify::event::DataChange::Any));
+        let first = debounce(&mut st, &ev("/proj/a.rs", kind), Path::new("/proj"), &[], &mut seq);
+        assert!(first.is_some());
+        st.last_emit_at
+            .entry(PathBuf::from("/proj/a.rs"))
+            .and_modify(|t| *t = Instant::now() - Duration::from_millis(200));
+        let third = debounce(&mut st, &ev("/proj/a.rs", kind), Path::new("/proj"), &[], &mut seq);
+        assert!(third.is_some());
+        assert_eq!(third.unwrap().sequence, 2);
+    }
+
+    #[test]
+    fn multiple_paths_debounce_independently() {
+        let mut st = Debounced::default();
+        let mut seq = 0;
+        let kind = NotifyEventKind::Modify(notify::event::ModifyKind::Data(notify::event::DataChange::Any));
+        assert!(debounce(&mut st, &ev("/proj/a.rs", kind), Path::new("/proj"), &[], &mut seq).is_some());
+        assert!(debounce(&mut st, &ev("/proj/b.rs", kind), Path::new("/proj"), &[], &mut seq).is_some());
+        assert_eq!(seq, 2);
+    }
+
+    #[test]
+    fn rename_sets_rename_action() {
+        let mut st = Debounced::default();
+        let mut seq = 0;
+        let out = debounce(
+            &mut st,
+            &ev(
+                "/proj/a.rs",
+                NotifyEventKind::Modify(notify::event::ModifyKind::Name(notify::event::RenameMode::Both)),
+            ),
+            Path::new("/proj"),
+            &[],
+            &mut seq,
+        );
+        assert_eq!(out.unwrap().action, FsAction::Rename);
     }
 }

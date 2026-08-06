@@ -30,11 +30,7 @@ pub fn detect_adapter(hint: TestAdapterHint) -> AdapterState {
     }
 }
 
-pub fn run_adapter(
-    adapter: &mut AdapterState,
-    chunk: &[u8],
-    summary: &mut TestSummary,
-) {
+pub fn run_adapter(adapter: &mut AdapterState, chunk: &[u8], summary: &mut TestSummary) {
     let text = String::from_utf8_lossy(chunk);
     match adapter {
         AdapterState::Auto => auto_adapt(&text, summary),
@@ -96,11 +92,7 @@ fn parse_pytest_line(line: &str) -> Option<PytestCounts> {
     let mut any = false;
     let l = line.trim_matches('=').trim();
     let l_lower = l.to_lowercase();
-    let keywords: &[(&str, &str)] = &[
-        ("passed", "passed"),
-        ("failed", "failed"),
-        ("skipped", "skipped"),
-    ];
+    let keywords: &[(&str, &str)] = &[("passed", "passed"), ("failed", "failed"), ("skipped", "skipped")];
     for (needle, target) in keywords {
         let Some(pos) = l_lower.find(needle) else {
             continue;
@@ -117,14 +109,18 @@ fn parse_pytest_line(line: &str) -> Option<PytestCounts> {
                     "passed" => out.passed = n as u32,
                     "failed" => out.failed = n as u32,
                     "skipped" => out.skipped = n as u32,
-                    _ => {}
+                    _ => {},
                 }
                 any = true;
             }
             break;
         }
     }
-    if any { Some(out) } else { None }
+    if any {
+        Some(out)
+    } else {
+        None
+    }
 }
 
 #[derive(Default, Debug)]
@@ -218,7 +214,11 @@ mod tests {
     fn pytest_passed_failed_summary() {
         let mut adapter = AdapterState::Pytest(PytestAdapter::default());
         let mut s = TestSummary::default();
-        run_adapter(&mut adapter, b"===\ntests/test_x.py .... 5 passed, 1 failed in 0.42s\n===", &mut s);
+        run_adapter(
+            &mut adapter,
+            b"===\ntests/test_x.py .... 5 passed, 1 failed in 0.42s\n===",
+            &mut s,
+        );
         assert_eq!(s.passed, 5);
         assert_eq!(s.failed, 1);
     }

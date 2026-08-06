@@ -11,7 +11,7 @@ use runlens_core::signatures::make_signature;
 use serde::Serialize;
 use tracing::debug;
 
-use crate::dispatch::{Dispatcher, monotonic_now_ns};
+use crate::dispatch::{monotonic_now_ns, Dispatcher};
 use crate::test_adapters::{detect_adapter, run_adapter, TestAdapterHint};
 
 #[derive(Debug, Clone)]
@@ -63,9 +63,8 @@ pub async fn run_pty(
 
     let (event_tx, mut event_rx) = tokio::sync::mpsc::unbounded_channel::<Event>();
 
-    let pty_handle = tokio::task::spawn_blocking(move || {
-        run_blocking(&command, &args, &env, &working_dir, event_tx, hint)
-    });
+    let pty_handle =
+        tokio::task::spawn_blocking(move || run_blocking(&command, &args, &env, &working_dir, event_tx, hint));
 
     while let Some(event) = event_rx.recv().await {
         let _ = dispatcher.emit(event);
@@ -112,10 +111,7 @@ fn run_blocking(
     let mut child = pair.slave.spawn_command(cmd).context("spawn child")?;
     drop(pair.slave);
 
-    let mut reader = pair
-        .master
-        .try_clone_reader()
-        .context("clone reader")?;
+    let mut reader = pair.master.try_clone_reader().context("clone reader")?;
 
     let (tx, rx) = mpsc::channel::<Vec<u8>>();
     let reader_thread = std::thread::spawn(move || {
@@ -127,11 +123,11 @@ fn run_blocking(
                     if tx.send(buf[..n].to_vec()).is_err() {
                         break;
                     }
-                }
+                },
                 Err(e) => {
                     debug!(error=%e, "pty read error");
                     break;
-                }
+                },
             }
         }
     });
@@ -146,10 +142,10 @@ fn run_blocking(
                 combined.extend_from_slice(&chunk);
                 run_adapter(&mut adapter, &chunk, &mut test_summary);
                 emit_pty_chunk(&event_tx, &chunk);
-            }
+            },
             Err(mpsc::TryRecvError::Empty) => {
                 std::thread::sleep(Duration::from_millis(25));
-            }
+            },
             Err(mpsc::TryRecvError::Disconnected) => break,
         }
 
@@ -180,13 +176,7 @@ fn run_blocking(
                     String::new()
                 };
                 if !summary_text.is_empty() {
-                    let sig = make_signature(
-                        "command_failed",
-                        &summary_text,
-                        Some(&trimmed),
-                        exit_status.code,
-                        None,
-                    );
+                    let sig = make_signature("command_failed", &summary_text, Some(&trimmed), exit_status.code, None);
                     let json = serde_json::to_value(&sig).unwrap_or_default();
                     let event = Event {
                         event_id: String::new(),
@@ -215,7 +205,7 @@ fn run_blocking(
                     wall_clock_ms,
                     test_summary,
                 });
-            }
+            },
             Ok(None) => continue,
             Err(e) => return Err(anyhow!("try_wait: {e}")),
         }
@@ -224,10 +214,7 @@ fn run_blocking(
     Err(anyhow!("pty loop exited without child status"))
 }
 
-fn emit_pty_chunk(
-    event_tx: &tokio::sync::mpsc::UnboundedSender<Event>,
-    bytes: &[u8],
-) {
+fn emit_pty_chunk(event_tx: &tokio::sync::mpsc::UnboundedSender<Event>, bytes: &[u8]) {
     let text = String::from_utf8_lossy(bytes).to_string();
     let event = Event {
         event_id: String::new(),

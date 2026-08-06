@@ -93,24 +93,17 @@ impl Dispatcher {
             *prev = new_hash;
         }
 
-        self.inner
-            .repo
-            .append_event(&event)
-            .context("append_event")?;
+        self.inner.repo.append_event(&event).context("append_event")?;
 
         for finding in &findings {
-            if let Err(e) = self
-                .inner
-                .repo
-                .record_redaction(
-                    &self.inner.session_id,
-                    Some(&event.event_id),
-                    finding.kind.as_str(),
-                    Some((finding.span_start, finding.span_end)),
-                    &finding.redaction,
-                    &finding.preview,
-                )
-            {
+            if let Err(e) = self.inner.repo.record_redaction(
+                &self.inner.session_id,
+                Some(&event.event_id),
+                finding.kind.as_str(),
+                Some((finding.span_start, finding.span_end)),
+                &finding.redaction,
+                &finding.preview,
+            ) {
                 tracing::warn!(error=%e, "failed to persist redaction finding");
             }
         }

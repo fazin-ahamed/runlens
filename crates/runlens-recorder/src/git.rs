@@ -30,11 +30,7 @@ fn capture_blocking(root: &Path) -> Result<GitFingerprint> {
             .output()
             .with_context(|| format!("git {:?}", args))?;
         if !output.status.success() {
-            return Err(anyhow!(
-                "git {:?} failed with status {}",
-                args,
-                output.status
-            ));
+            return Err(anyhow!("git {:?} failed with status {}", args, output.status));
         }
         Ok(output)
     };
@@ -77,9 +73,7 @@ fn capture_blocking(root: &Path) -> Result<GitFingerprint> {
         .lines()
         .map(|l| l.get(3..).unwrap_or("").to_string())
         .filter(|s| !s.is_empty())
-        .map(|s| {
-            mask_absolute_path(&s, &root.to_string_lossy(), &whoami())
-        })
+        .map(|s| mask_absolute_path(&s, &root.to_string_lossy(), &whoami()))
         .take(100)
         .collect();
 
@@ -96,13 +90,8 @@ fn capture_blocking(root: &Path) -> Result<GitFingerprint> {
     ] {
         let path = root.join(lock);
         if path.is_file() {
-            let hash = hash_file(&path)
-                .with_context(|| format!("hash lockfile {:?}", path))?;
-            let masked = mask_absolute_path(
-                &path.to_string_lossy(),
-                &root.to_string_lossy(),
-                &whoami(),
-            );
+            let hash = hash_file(&path).with_context(|| format!("hash lockfile {:?}", path))?;
+            let masked = mask_absolute_path(&path.to_string_lossy(), &root.to_string_lossy(), &whoami());
             lockfile_hashes.insert(masked, hash);
         }
     }

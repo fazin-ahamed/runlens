@@ -11,7 +11,7 @@ use runlens_core::model::{
 use runlens_storage::Repository;
 use tracing::{debug, warn};
 
-use crate::dispatch::{Dispatcher, monotonic_now_ns};
+use crate::dispatch::{monotonic_now_ns, Dispatcher};
 use crate::env_fingerprint::capture_env_fingerprint;
 use crate::file_watcher::{default_ignore, FsWatcher};
 use crate::git::capture_git_fingerprint;
@@ -99,13 +99,9 @@ impl Session {
         let start_ts = Utc::now();
         let session_id = Identifier::now().as_str().to_string();
         let project_info = upsert_project(&self.repo, &opts.working_dir)?;
-        let git_available = opts.enable_git;
+        let mut git_available = false;
 
-        let labels_vec = opts
-            .label
-            .as_ref()
-            .map(|l| vec![l.clone()])
-            .unwrap_or_default();
+        let labels_vec = opts.label.as_ref().map(|l| vec![l.clone()]).unwrap_or_default();
 
         let session_info = SessionInfo {
             session_id: session_id.clone(),
@@ -124,15 +120,11 @@ impl Session {
             imported: false,
             bundle_origin: None,
         };
-        self.repo.create_session(&session_info)
+        self.repo
+            .create_session(&session_info)
             .context("could not create session row in store")?;
-        self.repo.update_session_state(
-            &session_id,
-            SessionState::Recording,
-            None,
-            None,
-            0,
-        )?;
+        self.repo
+            .update_session_state(&session_id, SessionState::Recording, None, None, 0)?;
 
         let dispatcher = Dispatcher::new(
             self.repo.clone(),
@@ -159,16 +151,17 @@ impl Session {
         if opts.enable_git {
             match capture_git_fingerprint(&opts.working_dir).await {
                 Ok(git) => {
+                    git_available = true;
                     emit_core(
                         &dispatcher,
                         "git.snapshot",
                         Severity::Info,
                         serde_json::to_value(&git).unwrap_or_default(),
                     )?;
-                }
+                },
                 Err(e) => {
                     debug!(error=%e, "git fingerprint unavailable");
-                }
+                },
             }
         }
 
@@ -187,8 +180,7 @@ impl Session {
         } else {
             opts.watch_paths.clone()
         };
-        let file_watcher = FsWatcher::start(&watch_roots, &default_ignore())
-            .context("could not start file watcher")?;
+        let file_watcher = FsWatcher::start(&watch_roots, &default_ignore()).context("could not start file watcher")?;
         let watcher_rx = file_watcher.rx;
         let watcher_dispatcher = dispatcher.clone();
         let watcher_stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
@@ -267,11 +259,11 @@ impl Session {
 
         let events_vec = self.repo.list_events(&session_id).unwrap_or_default();
         let final_count = events_vec.len() as u64;
-        let redaction_total: u64 = events_vec
-            .iter()
-            .filter(|e| e.classification == PrivacyClassification::Sensitive
-                || e.classification == PrivacyClassification::Confidential)
-            .count() as u64;
+        let redaction_total: u64 = self
+            .repo
+            .list_redactions(&session_id)
+            .map(|f| f.len() as u64)
+            .unwrap_or(0);
 
         let mut final_state = if pty_outcome.exit_status.success() {
             SessionState::Complete
@@ -286,13 +278,8 @@ impl Session {
             );
         }
 
-        self.repo.update_session_state(
-            &session_id,
-            final_state.clone(),
-            Some(Utc::now()),
-            None,
-            final_count,
-        )?;
+        self.repo
+            .update_session_state(&session_id, final_state.clone(), Some(Utc::now()), None, final_count)?;
 
         Ok(SessionSummary {
             session_id,
@@ -310,9 +297,7 @@ impl Session {
 }
 
 fn upsert_project(repo: &Repository, root: &Path) -> Result<ProjectInfo> {
-    let canonical = root
-        .canonicalize()
-        .unwrap_or_else(|_| root.to_path_buf());
+    let canonical = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
     let canonical_str = canonical.to_string_lossy().into_owned();
 
     let recent = repo.list_recent_sessions(40).unwrap_or_default();
@@ -336,17 +321,10 @@ fn upsert_project(repo: &Repository, root: &Path) -> Result<ProjectInfo> {
         language_hints: vec![],
     };
     repo.ensure_project(&project)?;
-    Ok(repo
-        .get_project(&project_id)?
-        .unwrap_or(project))
+    Ok(repo.get_project(&project_id)?.unwrap_or(project))
 }
 
-fn emit_core(
-    dispatcher: &Dispatcher,
-    kind: &str,
-    severity: Severity,
-    payload: serde_json::Value,
-) -> Result<()> {
+fn emit_core(dispatcher: &Dispatcher, kind: &str, severity: Severity, payload: serde_json::Value) -> Result<()> {
     let now = Utc::now();
     let event = Event {
         event_id: String::new(),

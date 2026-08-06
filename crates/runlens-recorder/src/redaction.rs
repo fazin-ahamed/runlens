@@ -1,7 +1,5 @@
 use runlens_core::model::Event;
-use runlens_core::privacy::{
-    apply_redactions, default_patterns, scan_string, Finding, SecretPattern,
-};
+use runlens_core::privacy::{apply_redactions, default_patterns, scan_string, Finding, SecretPattern};
 use serde_json::Value;
 
 #[derive(Clone)]
@@ -24,20 +22,12 @@ impl Redactor {
 
     pub fn process_event(&self, mut event: Event) -> (Event, Vec<Finding>) {
         let mut findings: Vec<Finding> = Vec::new();
-        event.payload = redact_recursive(
-            event.payload.take(),
-            &self.patterns,
-            &mut findings,
-        );
+        event.payload = redact_recursive(event.payload.take(), &self.patterns, &mut findings);
         (event, findings)
     }
 }
 
-fn redact_recursive(
-    v: Value,
-    patterns: &[SecretPattern],
-    findings: &mut Vec<Finding>,
-) -> Value {
+fn redact_recursive(v: Value, patterns: &[SecretPattern], findings: &mut Vec<Finding>) -> Value {
     match v {
         Value::String(s) => {
             let (_, mut f) = scan_string(&s, patterns);
@@ -55,12 +45,8 @@ fn redact_recursive(
             }
             findings.extend(kept.clone());
             Value::String(apply_redactions(&s, &kept))
-        }
-        Value::Array(a) => Value::Array(
-            a.into_iter()
-                .map(|x| redact_recursive(x, patterns, findings))
-                .collect(),
-        ),
+        },
+        Value::Array(a) => Value::Array(a.into_iter().map(|x| redact_recursive(x, patterns, findings)).collect()),
         Value::Object(o) => Value::Object(
             o.into_iter()
                 .map(|(k, v)| (k, redact_recursive(v, patterns, findings)))
@@ -76,7 +62,7 @@ pub fn walk_strings(event: &Event, mut on_string: impl FnMut(&str)) {
             Value::String(s) => on_string(s),
             Value::Array(a) => a.iter().for_each(|x| inner(x, on_string)),
             Value::Object(o) => o.values().for_each(|x| inner(x, on_string)),
-            _ => {}
+            _ => {},
         }
     }
     inner(&event.payload, &mut on_string);

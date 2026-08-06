@@ -64,8 +64,7 @@ impl Profiler {
     }
 
     pub async fn stop(self) {
-        self.stop_flag
-            .store(true, std::sync::atomic::Ordering::Relaxed);
+        self.stop_flag.store(true, std::sync::atomic::Ordering::Relaxed);
         let interval_estimate = Duration::from_millis(200);
         let _ = tokio::time::timeout(interval_estimate * 3, async {
             let start = Instant::now();
