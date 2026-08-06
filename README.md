@@ -36,7 +36,9 @@ honest status of the bigger surfaces. v0.1.0, so expect rough edges.
 
 ## install
 
-you need a rust toolchain with the `wasm32-wasip2` target. the mcp server and the zed extension both build on it.
+prebuilt binaries for windows, linux and macos are attached to each [github release](https://github.com/fazin-ahamed/runlens/releases). download the tarball for your platform, unpack it, and put `runlens` on your `PATH`.
+
+to build from source you need a rust toolchain with the `wasm32-wasip2` target. the mcp server and the zed extension both build on it.
 
 ```bash
 cargo build --workspace
