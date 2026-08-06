@@ -281,7 +281,7 @@ impl HealthCheck for DiskSpaceCheck {
                         return None;
                     }
                     let stat = unsafe { stat.assume_init() };
-                    Some(stat.f_bfree as u64 * stat.f_frsize as u64)
+                    Some(stat.f_bfree * stat.f_frsize)
                 })
                 .unwrap_or(0)
         }
@@ -428,6 +428,13 @@ pub fn format_json(report: &DiagnosticReport) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Mutex, OnceLock};
+
+    static DAEMON_TEST_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+    fn daemon_test_lock() -> &'static Mutex<()> {
+        DAEMON_TEST_LOCK.get_or_init(|| Mutex::new(()))
+    }
 
     #[test]
     fn test_empty_report() {
@@ -484,6 +491,7 @@ mod tests {
 
     #[test]
     fn test_daemon_check_no_pid_file() {
+        let _guard = daemon_test_lock().lock().unwrap();
         let check = DaemonCheck;
         let result = check.run();
         assert_eq!(result.status, CheckStatus::Skipped);
@@ -492,6 +500,7 @@ mod tests {
 
     #[test]
     fn test_daemon_check_with_stale_pid_file() {
+        let _guard = daemon_test_lock().lock().unwrap();
         let dir = tempfile::tempdir().unwrap();
         let old_cwd = std::env::current_dir().unwrap();
         std::env::set_current_dir(&dir).unwrap();
