@@ -1,24 +1,8 @@
 use std::path::PathBuf;
 use std::process::Command;
 
-fn project_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
-}
-
 fn runlens_bin() -> PathBuf {
-    let mut p = project_root();
-    p.push("target");
-    p.push("debug");
-    p.push("runlens.exe");
-    if p.exists() {
-        return p;
-    }
-    PathBuf::from("runlens.exe")
+    PathBuf::from(env!("CARGO_BIN_EXE_runlens"))
 }
 
 fn temp_project() -> tempfile::TempDir {
