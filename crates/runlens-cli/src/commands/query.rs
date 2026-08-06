@@ -18,17 +18,14 @@ pub enum QueryAction {
     },
 }
 
-pub async fn run(
-    args: &QueryArgs,
-    workspace: &crate::paths::WorkspacePaths,
-) -> anyhow::Result<()> {
+pub async fn run(args: &QueryArgs, workspace: &crate::paths::WorkspacePaths) -> anyhow::Result<()> {
     let repo = runlens_storage::Repository::open(&workspace.db_path)?;
     let conn_guard = repo.conn().lock().unwrap();
-    let conn: &rusqlite::Connection = &*conn_guard;
+    let conn: &rusqlite::Connection = &conn_guard;
 
     match &args.action {
         QueryAction::Run { rql, json } => {
-            let rows = runlens_query::run_query(&conn, rql)?;
+            let rows = runlens_query::run_query(conn, rql)?;
             if *json {
                 println!("{}", serde_json::to_string_pretty(&rows)?);
             } else if rows.is_empty() {
@@ -39,13 +36,13 @@ pub async fn run(
                     println!("  {row}");
                 }
             }
-        }
+        },
         QueryAction::Explain { rql } => {
-            let plan = runlens_query::run_explain(&conn, rql)?;
+            let plan = runlens_query::run_explain(conn, rql)?;
             for row in &plan {
                 println!("{row}");
             }
-        }
+        },
     }
     Ok(())
 }

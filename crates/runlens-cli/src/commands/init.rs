@@ -2,7 +2,10 @@ use runlens_storage::Repository;
 
 pub fn run(ws: &crate::paths::WorkspacePaths, force: bool) -> anyhow::Result<()> {
     if ws.db_path.exists() && !force {
-        anyhow::bail!("RunLens store already exists at {}. Use --force to re-create.", ws.db_path.display());
+        anyhow::bail!(
+            "RunLens store already exists at {}. Use --force to re-create.",
+            ws.db_path.display()
+        );
     }
     ws.ensure_root()?;
     if force {

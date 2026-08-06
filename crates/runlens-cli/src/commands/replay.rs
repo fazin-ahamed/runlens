@@ -30,7 +30,7 @@ pub async fn run(_workspace: &WorkspacePaths, args: &ReplayArgs) -> Result<()> {
     match &args.cmd {
         ReplayCommand::Capture { session_id, mode } => {
             println!("Captured session {} for replay in {} mode", session_id, mode);
-        }
+        },
         ReplayCommand::Analyse { capture_id, json } => {
             if *json {
                 println!("{{\"capture_id\": \"{}\", \"divergences\": []}}", capture_id);
@@ -38,14 +38,14 @@ pub async fn run(_workspace: &WorkspacePaths, args: &ReplayArgs) -> Result<()> {
                 println!("Replay Analysis: {}", capture_id);
                 println!("  No divergences detected");
             }
-        }
+        },
         ReplayCommand::List { json } => {
             if *json {
                 println!("[]");
             } else {
                 println!("No replay captures found");
             }
-        }
+        },
     }
     Ok(())
 }

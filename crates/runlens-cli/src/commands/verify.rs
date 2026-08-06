@@ -1,8 +1,4 @@
-pub fn run(
-    workspace: &crate::paths::WorkspacePaths,
-    session_id: &str,
-    json: bool,
-) -> anyhow::Result<()> {
+pub fn run(workspace: &crate::paths::WorkspacePaths, session_id: &str, json: bool) -> anyhow::Result<()> {
     let repo = runlens_storage::Repository::open(&workspace.db_path)?;
     let events = repo.list_events(session_id)?;
     let report = match runlens_integrity::verify_chain(&events) {

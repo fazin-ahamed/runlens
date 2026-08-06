@@ -35,7 +35,7 @@ pub async fn run(_workspace: &WorkspacePaths, args: &CiArgs) -> Result<()> {
             if let Some(f) = fail_on {
                 println!("  Fail on: {}", f);
             }
-        }
+        },
         CiCommand::Summary { title, json } => {
             let summary = runlens_ci::CiJobSummary {
                 title: title.clone().unwrap_or_else(|| "RunLens Report".into()),
@@ -50,7 +50,7 @@ pub async fn run(_workspace: &WorkspacePaths, args: &CiArgs) -> Result<()> {
             } else {
                 println!("{}", summary.to_github_markdown());
             }
-        }
+        },
     }
     Ok(())
 }

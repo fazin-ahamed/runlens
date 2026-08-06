@@ -1,9 +1,9 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 pub fn run(
     workspace: &crate::paths::WorkspacePaths,
-    path: &PathBuf,
-    extract_root: &PathBuf,
+    path: &Path,
+    extract_root: &Path,
     overwrite: bool,
     json: bool,
 ) -> anyhow::Result<()> {
@@ -12,7 +12,7 @@ pub fn run(
         path,
         &repo,
         runlens_bundle::ImportOptions {
-            extract_root: extract_root.clone(),
+            extract_root: extract_root.to_path_buf(),
             overwrite,
             redaction_allowlist: vec![],
         },

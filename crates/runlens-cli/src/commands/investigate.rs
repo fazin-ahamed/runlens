@@ -35,6 +35,7 @@ pub async fn run(
             profiler_interval_ms: 0,
             test_adapter_hint: Some(TestAdapterKind::Pytest),
             fail_on_findings: false,
+            max_events: None,
         };
         let session = Session::new(repo.clone(), opts);
         let summary = session.record().await?;

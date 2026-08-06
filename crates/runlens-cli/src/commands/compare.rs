@@ -12,23 +12,13 @@ pub async fn run(
         crate::output::render_json(&cmp)?;
         return Ok(());
     }
-    println!(
-        "Comparison: {} -> {}",
-        baseline,
-        candidate
-    );
+    println!("Comparison: {} -> {}", baseline, candidate);
     println!(
         "  events: baseline={}, candidate={}",
         cmp.baseline_event_count, cmp.candidate_event_count
     );
     for (i, d) in cmp.divergences.iter().enumerate() {
-        println!(
-            "  {}. [{:?}] {}\n     {}",
-            i + 1,
-            d.severity,
-            d.title,
-            d.summary
-        );
+        println!("  {}. [{:?}] {}\n     {}", i + 1, d.severity, d.title, d.summary);
     }
     if cmp.divergences.is_empty() {
         println!("  no divergences surfaced");

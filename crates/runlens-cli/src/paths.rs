@@ -13,7 +13,11 @@ impl WorkspacePaths {
         let root = cwd.join(".runlens");
         let db_path = db.map(PathBuf::from).unwrap_or_else(|| root.join("runlens.sqlite"));
         let blobs_dir = root.join("blobs");
-        Ok(WorkspacePaths { root, db_path, blobs_dir })
+        Ok(WorkspacePaths {
+            root,
+            db_path,
+            blobs_dir,
+        })
     }
 
     pub fn ensure_root(&self) -> anyhow::Result<()> {

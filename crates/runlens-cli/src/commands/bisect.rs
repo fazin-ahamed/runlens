@@ -14,10 +14,7 @@ pub struct BisectArgs {
     pub resume: bool,
 }
 
-pub async fn run(
-    args: &BisectArgs,
-    _workspace: &crate::paths::WorkspacePaths,
-) -> anyhow::Result<()> {
+pub async fn run(args: &BisectArgs, _workspace: &crate::paths::WorkspacePaths) -> anyhow::Result<()> {
     let repo_path = args.repo.clone().unwrap_or_else(|| std::env::current_dir().unwrap());
     let project_root = &repo_path;
 
@@ -40,25 +37,17 @@ pub async fn run(
     }
 
     let bisect_predicate = |state: runlens_bisect::engine::BisectState| async move {
-        let cmd_pred = runlens_bisect::predicate::BisectPredicate::new(
-            args.command.clone()
-        );
+        let cmd_pred = runlens_bisect::predicate::BisectPredicate::new(args.command.clone());
         match cmd_pred.run_async(&state.worktree_path).await {
             Ok(r) => r,
             Err(e) => {
                 eprintln!("warning: predicate error: {e}");
                 runlens_bisect::predicate::PredicateResult::Inconclusive
-            }
+            },
         }
     };
 
-    let outcome = runlens_bisect::engine::bisect(
-        &repo_path,
-        &good,
-        &bad,
-        bisect_predicate,
-        &ws,
-    ).await?;
+    let outcome = runlens_bisect::engine::bisect(&repo_path, &good, &bad, bisect_predicate, &ws).await?;
 
     let progress = runlens_bisect::progress::BisectProgress {
         good: good.clone(),

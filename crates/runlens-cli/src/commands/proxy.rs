@@ -42,21 +42,17 @@ pub async fn run(args: &ProxyArgs, _workspace: &crate::paths::WorkspacePaths) ->
                 s.notify_one();
             });
             proxy.serve(shutdown).await?;
-        }
+        },
         ProxyAction::InstallCa => {
-            let store = runlens_proxy::tls::CaStore::load_or_generate(
-                &std::path::Path::new(".")
-            )?;
+            let store = runlens_proxy::tls::CaStore::load_or_generate(std::path::Path::new("."))?;
             store.install()?;
             println!("CA certificate installed. You may need to restart your browser.");
-        }
+        },
         ProxyAction::RemoveCa => {
-            let store = runlens_proxy::tls::CaStore::load_or_generate(
-                &std::path::Path::new(".")
-            )?;
+            let store = runlens_proxy::tls::CaStore::load_or_generate(std::path::Path::new("."))?;
             store.remove()?;
             println!("CA certificate removed.");
-        }
+        },
     }
     Ok(())
 }

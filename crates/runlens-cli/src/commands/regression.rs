@@ -31,9 +31,17 @@ pub enum RegressionCommand {
 pub async fn run(_workspace: &WorkspacePaths, args: &RegressionArgs) -> Result<()> {
     match &args.cmd {
         RegressionCommand::Baseline { session_id, label } => {
-            println!("Registered baseline: {} ({})", session_id, label.as_deref().unwrap_or("unlabeled"));
-        }
-        RegressionCommand::Check { baseline_id, candidate_session_id, json } => {
+            println!(
+                "Registered baseline: {} ({})",
+                session_id,
+                label.as_deref().unwrap_or("unlabeled")
+            );
+        },
+        RegressionCommand::Check {
+            baseline_id,
+            candidate_session_id,
+            json,
+        } => {
             let detector = RegressionDetector::new();
             let report = detector.compare(baseline_id, vec![]);
             if *json {
@@ -42,7 +50,7 @@ pub async fn run(_workspace: &WorkspacePaths, args: &RegressionArgs) -> Result<(
                 println!("Regression Report: {} vs {}", baseline_id, candidate_session_id);
                 println!("  Failed: {} ({:?})", report.summary.failed, report.summary.severity);
             }
-        }
+        },
         RegressionCommand::List { json } => {
             let detector = RegressionDetector::new();
             let baselines = detector.list_baselines();
@@ -50,10 +58,10 @@ pub async fn run(_workspace: &WorkspacePaths, args: &RegressionArgs) -> Result<(
                 println!("{}", serde_json::to_string_pretty(&baselines)?);
             } else {
                 for b in &baselines {
-                    println!("  {}", b);
+                    println!("  {b:?}");
                 }
             }
-        }
+        },
     }
     Ok(())
 }

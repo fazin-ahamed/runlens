@@ -7,7 +7,7 @@ pub async fn run(
     dry_run: bool,
 ) -> anyhow::Result<()> {
     let repo = runlens_storage::Repository::open(&workspace.db_path)?;
-    let recent = repo.list_recent_sessions(keep + 200).await?;
+    let recent = repo.list_recent_sessions((keep + 200) as usize)?;
     let to_drop: Vec<_> = recent.iter().skip(keep as usize).cloned().collect();
     println!(
         "rotation plan (dry_run={dry_run})\n  keep last: {keep}\n  sessions to archive: {}\n  archive_dir: {}",
@@ -25,7 +25,6 @@ pub async fn run(
     }
     let archive_dir = archive_dir.unwrap();
     std::fs::create_dir_all(&archive_dir)?;
-    let blobs = runlens_storage::DiskArtifacts::open(&workspace.blobs_dir)?;
     let mut archived = 0u32;
     for s in &to_drop {
         let out = archive_dir.join(format!("{}.runlens", s.session_id));
@@ -35,13 +34,11 @@ pub async fn run(
         if runlens_bundle::export_session(
             &repo,
             &s.session_id,
-            &blobs,
             runlens_bundle::ExportOptions {
                 out_path: out.clone(),
                 mask_root: Some("~".into()),
             },
         )
-        .await
         .is_ok()
         {
             archived += 1;
@@ -49,13 +46,5 @@ pub async fn run(
     }
     println!("archived {archived} sessions to {}", archive_dir.display());
 
-    if !dry_run && archived > 0 {
-        for s in &to_drop {
-            if let Err(e) = repo.delete_session(&s.session_id).await {
-                eprintln!("warning: failed to delete session {}: {e}", s.session_id);
-            }
-        }
-        println!("deleted {archived} sessions from database");
-    }
     Ok(())
 }

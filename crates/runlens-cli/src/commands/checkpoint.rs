@@ -31,22 +31,28 @@ pub enum CheckpointAction {
     },
 }
 
-pub async fn run(
-    args: &CheckpointArgs,
-    workspace: &crate::paths::WorkspacePaths,
-) -> anyhow::Result<()> {
+pub async fn run(args: &CheckpointArgs, workspace: &crate::paths::WorkspacePaths) -> anyhow::Result<()> {
     match &args.action {
-        CheckpointAction::Create { root, message, include_secrets } => {
+        CheckpointAction::Create {
+            root,
+            message,
+            include_secrets,
+        } => {
             let store = runlens_workspace::object_store::ObjectStore::open(&workspace.blobs_dir)?;
-            let mut snapshot = runlens_workspace::snapshot::Snapshot::new(store);
+            let snapshot = runlens_workspace::snapshot::Snapshot::new(store);
             let manifest = snapshot.create(root, message.clone(), *include_secrets)?;
             let root_hash = manifest.root_hash();
             let db_path = workspace.db_path.to_string_lossy().to_string();
-            persist_checkpoint(&db_path, &manifest, &root_hash)?;
+            persist_checkpoint(&db_path, &manifest, root_hash)?;
             let size: u64 = manifest.files.iter().map(|f| f.size).sum();
-            println!("Created checkpoint {} ({} files, {} bytes)", root_hash, manifest.files.len(), size);
+            println!(
+                "Created checkpoint {} ({} files, {} bytes)",
+                root_hash,
+                manifest.files.len(),
+                size
+            );
             Ok(())
-        }
+        },
         CheckpointAction::Restore { checkpoint_id, output } => {
             let db_path = workspace.db_path.to_string_lossy().to_string();
             let (manifest_json, root_hash) = load_checkpoint(&db_path, checkpoint_id)?
@@ -56,7 +62,7 @@ pub async fn run(
             restorer.restore(&manifest, &workspace.blobs_dir, output)?;
             println!("Restored checkpoint {} to {}", root_hash, output.display());
             Ok(())
-        }
+        },
         CheckpointAction::List { session_id } => {
             let db_path = workspace.db_path.to_string_lossy().to_string();
             let conn = rusqlite::Connection::open(&db_path)?;
@@ -65,7 +71,7 @@ pub async fn run(
                  FROM checkpoints
                  WHERE session_id = ?1
                  ORDER BY created_at DESC
-                 LIMIT 50"
+                 LIMIT 50",
             )?;
             let rows = stmt.query_map(rusqlite::params![session_id], |r| {
                 Ok((
@@ -83,20 +89,23 @@ pub async fn run(
                 println!("{id:20} {created}  {files:>5} files  {size:>10} bytes  {git_info:20}  {msg}");
             }
             Ok(())
-        }
+        },
         CheckpointAction::Gc { dry_run } => {
             let store = runlens_workspace::object_store::ObjectStore::open(&workspace.blobs_dir)?;
             let db_path = workspace.db_path.to_string_lossy().to_string();
             let conn = rusqlite::Connection::open(&db_path)?;
             let mut stmt = conn.prepare("SELECT manifest_hash FROM checkpoints")?;
-            let live_hashes: Vec<String> = stmt.query_map([], |r| r.get::<_, String>(0))?
+            let live_hashes: Vec<String> = stmt
+                .query_map([], |r| r.get::<_, String>(0))?
                 .filter_map(|r| r.ok())
                 .collect();
             let mut referenced = std::collections::HashSet::new();
             for hash in &live_hashes {
                 let manifest_path = workspace.blobs_dir.join("manifests").join(format!("{hash}.json"));
                 if let Ok(chunks_json) = std::fs::read_to_string(&manifest_path) {
-                    if let Ok(manifest) = serde_json::from_str::<runlens_workspace::manifest::SnapshotManifest>(&chunks_json) {
+                    if let Ok(manifest) =
+                        serde_json::from_str::<runlens_workspace::manifest::SnapshotManifest>(&chunks_json)
+                    {
                         for f in &manifest.files {
                             for ch in &f.chunk_hashes {
                                 referenced.insert(ch.clone());
@@ -112,11 +121,15 @@ pub async fn run(
                 println!("Deleted {} orphan chunks", deleted.len());
             }
             Ok(())
-        }
+        },
     }
 }
 
-fn persist_checkpoint(db_path: &str, manifest: &runlens_workspace::manifest::SnapshotManifest, root_hash: &str) -> anyhow::Result<()> {
+fn persist_checkpoint(
+    db_path: &str,
+    manifest: &runlens_workspace::manifest::SnapshotManifest,
+    root_hash: &str,
+) -> anyhow::Result<()> {
     let conn = rusqlite::Connection::open(db_path)?;
     runlens_storage::migrations::run(&conn)?;
     let total_size: i64 = manifest.files.iter().map(|f| f.size as i64).sum();
@@ -140,9 +153,7 @@ fn persist_checkpoint(db_path: &str, manifest: &runlens_workspace::manifest::Sna
 
 fn load_checkpoint(db_path: &str, checkpoint_id: &str) -> anyhow::Result<Option<(String, String)>> {
     let conn = rusqlite::Connection::open(db_path)?;
-    let mut stmt = conn.prepare(
-        "SELECT manifest_hash, root_hash FROM checkpoints WHERE checkpoint_id = ?1"
-    )?;
+    let mut stmt = conn.prepare("SELECT manifest_hash, root_hash FROM checkpoints WHERE checkpoint_id = ?1")?;
     let mut rows = stmt.query(rusqlite::params![checkpoint_id])?;
     match rows.next()? {
         Some(r) => Ok(Some((r.get::<_, String>(0)?, r.get::<_, String>(1)?))),

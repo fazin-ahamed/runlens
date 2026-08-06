@@ -9,15 +9,13 @@ pub struct MinimizeArgs {
     pub resume: bool,
 }
 
-pub async fn run(
-    args: &MinimizeArgs,
-    workspace: &crate::paths::WorkspacePaths,
-) -> anyhow::Result<()> {
+pub async fn run(args: &MinimizeArgs, workspace: &crate::paths::WorkspacePaths) -> anyhow::Result<()> {
     let session_id = &args.session_id;
 
     let repo = runlens_storage::repo::Repository::open(&workspace.db_path)?;
-    let session = repo.get_session(session_id)
-        .map_err(|e| anyhow::anyhow!("session lookup failed: {e}"))?
+    let session = repo
+        .get_session(session_id)
+        .map_err(|e| anyhow::anyhow!("session lookup failed: {e}"))?;
 
     let cwd = std::env::current_dir()?;
     let files: Vec<String> = std::fs::read_dir(&cwd)?
@@ -31,27 +29,29 @@ pub async fn run(
     }
 
     let command = session.command.clone().unwrap_or_default();
-    let predicate = runlens_minimize::predicate::Predicate::new(
-        if command.is_empty() {
-            vec!["true".into()]
-        } else {
-            command.split_whitespace().map(String::from).collect()
-        }
-    );
+    let predicate = runlens_minimize::predicate::Predicate::new(if command.is_empty() {
+        vec!["true".into()]
+    } else {
+        command.split_whitespace().map(String::from).collect()
+    });
 
     println!("Minimizing {} items (dimension: {})...", files.len(), args.dimension);
     let outcome = runlens_minimize::engine::minimize(files, |_subset| {
         let rt = tokio::runtime::Handle::current();
         let delta_dir = std::path::Path::new(".");
         rt.block_on(async { predicate.run(delta_dir).await })
-    }).await;
+    })
+    .await;
 
     let explain = runlens_minimize::explain::MinimizeResult {
         delta: outcome.delta.clone(),
         evaluations: outcome.evaluations,
-        steps: outcome.steps.len(),
+        steps: outcome.steps.clone(),
     };
-    println!("{}", runlens_minimize::explain::format_explanation(&explain, &args.dimension));
+    println!(
+        "{}",
+        runlens_minimize::explain::format_explanation(&explain, &args.dimension)
+    );
 
     Ok(())
 }

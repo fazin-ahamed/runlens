@@ -35,10 +35,10 @@ pub async fn run(_workspace: &WorkspacePaths, args: &MatrixArgs) -> Result<()> {
     match &args.cmd {
         MatrixCommand::Define { name, file } => {
             println!("Defined matrix '{}' from {}", name, file.as_deref().unwrap_or("inline"));
-        }
+        },
         MatrixCommand::Run { matrix_id, parallel } => {
             println!("Running matrix {} with {} parallel workers", matrix_id, parallel);
-        }
+        },
         MatrixCommand::Show { matrix_id, json } => {
             if *json {
                 println!("{{\"matrix_id\": \"{}\", \"combinations\": []}}", matrix_id);
@@ -46,14 +46,14 @@ pub async fn run(_workspace: &WorkspacePaths, args: &MatrixArgs) -> Result<()> {
                 println!("Matrix: {}", matrix_id);
                 println!("  Status: Not run");
             }
-        }
+        },
         MatrixCommand::List { json } => {
             if *json {
                 println!("[]");
             } else {
                 println!("No matrices defined");
             }
-        }
+        },
     }
     Ok(())
 }

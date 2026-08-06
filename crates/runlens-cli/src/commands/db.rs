@@ -44,19 +44,14 @@ pub async fn run(args: &DbArgs, workspace: &crate::paths::WorkspacePaths) -> any
             slow_ms,
             json,
         } => {
-            let analysis = runlens_db::analyze_session(
-                &repo,
-                session_id,
-                *n_plus_one_threshold,
-                *slow_ms * 1_000_000,
-            )
-            .map_err(|e| anyhow::anyhow!("analysis failed: {:?}", e))?;
+            let analysis = runlens_db::analyze_session(&repo, session_id, *n_plus_one_threshold, *slow_ms * 1_000_000)
+                .map_err(|e| anyhow::anyhow!("analysis failed: {:?}", e))?;
             if *json {
                 println!("{}", runlens_db::report::to_json(&analysis));
             } else {
                 print!("{}", runlens_db::report::to_text(&analysis));
             }
-        }
+        },
     }
     Ok(())
 }

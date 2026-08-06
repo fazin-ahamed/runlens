@@ -1,8 +1,4 @@
-pub fn run(
-    workspace: &crate::paths::WorkspacePaths,
-    session_id: &str,
-    json: bool,
-) -> anyhow::Result<()> {
+pub fn run(workspace: &crate::paths::WorkspacePaths, session_id: &str, json: bool) -> anyhow::Result<()> {
     let repo = runlens_storage::Repository::open(&workspace.db_path)?;
     let findings = repo.list_redactions(session_id)?;
     if json {

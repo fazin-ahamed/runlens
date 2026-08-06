@@ -5,6 +5,7 @@ use indexmap::IndexMap;
 use runlens_recorder::session::{RecordingOptions, Session, TestAdapterKind};
 use runlens_storage::Repository;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn run(
     workspace: &crate::paths::WorkspacePaths,
     cwd: PathBuf,
