@@ -75,7 +75,10 @@ diverged in event-kind X", not "session B crashed because of A".
 
 ## reviewing findings
 
-`runlens redactions <session_id>` lists every finding. findings are
+`runlens redactions <session_id>` lists the findings recorded for a session.
+persistence is best-effort and best used as a debugging aid; redaction itself
+runs before sealing, so a finding record being missing does not mean the raw
+value leaked. findings are
 tagged with `reviewed` in schema. interactive review command coming
 later.
 

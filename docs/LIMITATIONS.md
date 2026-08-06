@@ -94,5 +94,7 @@ about so you dont discover it the hard way.
 
 - we will never call the network during recording. all recording data stays local in SQLite under `.runlens/`.
 - we will never publish telemetry.
-- we will never silently drop redaction findings. every finding is
-  available via `runlens redactions`.
+- we will never silently drop redaction findings. redaction persistence is
+  best-effort and is grouped into each recording run as `redaction_findings_total`;
+  a persistence failure is surfaced as a warning in the record log rather than
+  silently swallowed.

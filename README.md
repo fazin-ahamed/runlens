@@ -166,6 +166,12 @@ extensions/          zed, editors, engine fixtures
 docs/                 architecture, privacy, performance
 ```
 
+## ai assistance
+
+this repo uses a bit of ai for learning how to implement the editor
+integrations and to navigate the problems faced while attempting to implement
+them.
+
 ## license
 
 mit, for now. see [LICENSE](LICENSE).
