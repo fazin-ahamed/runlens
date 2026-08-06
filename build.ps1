@@ -10,17 +10,13 @@ cargo build --workspace
 Write-Host "[2/3] cargo test --workspace"
 cargo test --workspace
 
-Write-Host "[3/3] VS Code extension -> runlens-0.1.0.vsix"
-if (Get-Command npm -ErrorAction SilentlyContinue) {
-    Push-Location -LiteralPath "extensions/vscode-runlens"
-    npm install --no-audit --no-fund --prefer-offline
-    if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
-    npm run ci
-    if ($LASTEXITCODE -ne 0) { throw "npm run ci failed" }
-    Pop-Location
-    Write-Host ("  artefact: extensions/vscode-runlens/runlens-{0}.vsix" -f "0.1.0")
+Write-Host "[3/3] zed extension wasm"
+$targets = rustup target list --installed 2>$null
+if ($targets -match "wasm32-wasip2") {
+    cargo build --release --target wasm32-wasip2 --manifest-path extensions/zed-runlens/Cargo.toml
+    Write-Host "  artefact: extensions/zed-runlens/target/wasm32-wasip2/release/zed_runlens_extension.wasm"
 } else {
-    Write-Host "  npm not on PATH; skipping VSIX build"
+    Write-Host "  wasm32-wasip2 target not installed; skipping wasm build"
 }
 
 Write-Host "build.ps1: done"

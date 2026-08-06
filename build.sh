@@ -9,15 +9,12 @@ cargo build --workspace
 echo "[2/3] cargo test --workspace"
 cargo test --workspace
 
-echo "[3/3] VS Code extension -> runlens-0.1.0.vsix"
-if command -v npm >/dev/null 2>&1; then
-    pushd extensions/vscode-runlens >/dev/null
-    npm install --no-audit --no-fund --prefer-offline
-    npm run ci
-    popd >/dev/null
-    echo "  artefact: extensions/vscode-runlens/runlens-0.1.0.vsix"
+echo "[3/3] zed extension wasm"
+if rustup target list --installed 2>/dev/null | grep -q wasm32-wasip2; then
+    cargo build --release --target wasm32-wasip2 --manifest-path extensions/zed-runlens/Cargo.toml
+    echo "  artefact: extensions/zed-runlens/target/wasm32-wasip2/release/zed_runlens_extension.wasm"
 else
-    echo "  npm not on PATH; skipping VSIX build"
+    echo "  wasm32-wasip2 target not installed; skipping wasm build"
 fi
 
 echo "build.sh: done"
