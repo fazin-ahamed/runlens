@@ -36,10 +36,34 @@ pub async fn run(args: &MinimizeArgs, workspace: &crate::paths::WorkspacePaths) 
     });
 
     println!("Minimizing {} items (dimension: {})...", files.len(), args.dimension);
-    let outcome = runlens_minimize::engine::minimize(files, |_subset| {
+    let cwd = std::path::PathBuf::from(&cwd);
+    let outcome = runlens_minimize::engine::minimize(files, |subset| {
         let rt = tokio::runtime::Handle::current();
-        let delta_dir = std::path::Path::new(".");
-        rt.block_on(async { predicate.run(delta_dir).await })
+        let cwd = cwd.clone();
+        rt.block_on(async {
+            let dir = std::env::temp_dir().join(format!(
+                "runlens-min-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_nanos())
+                    .unwrap_or_default()
+            ));
+            std::fs::create_dir_all(&dir).ok();
+            let mut copied = Vec::new();
+            for name in subset {
+                let src = cwd.join(name);
+                if std::fs::copy(&src, dir.join(name)).is_ok() {
+                    copied.push(name.clone());
+                }
+            }
+            let ok = predicate.run(&dir).await;
+            for name in copied {
+                let _ = std::fs::remove_file(dir.join(name));
+            }
+            let _ = std::fs::remove_dir_all(&dir);
+            ok
+        })
     })
     .await;
 

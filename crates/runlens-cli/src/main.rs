@@ -114,7 +114,7 @@ enum Commands {
     #[command(about = "Export a session to a bundle")]
     Export {
         session_id: String,
-        #[arg()]
+        #[arg(short = 'o', long)]
         out: PathBuf,
     },
     #[command(about = "Import a session bundle")]

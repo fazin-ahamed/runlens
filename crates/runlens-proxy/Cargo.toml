@@ -13,5 +13,6 @@ description = "RunLens HTTP/WS proxy (stub)"
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["net", "io-util"] }
+tracing = { workspace = true }
 rcgen = "0.13"

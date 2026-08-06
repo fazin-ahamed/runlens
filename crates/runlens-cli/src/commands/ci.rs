@@ -29,11 +29,43 @@ pub async fn run(_workspace: &WorkspacePaths, args: &CiArgs) -> Result<()> {
         CiCommand::Run { command, fail_on } => {
             let env = runlens_ci::CiEnvironment::detect();
             println!("Running in CI environment: {}", env.as_str());
-            if !command.is_empty() {
-                println!("  Command: {}", command.join(" "));
+
+            if command.is_empty() {
+                anyhow::bail!("a --command is required (e.g. `ci run --command cargo test`)");
             }
+
+            let started = std::time::Instant::now();
+            let status = tokio::process::Command::new(&command[0])
+                .args(&command[1..])
+                .status()
+                .await?;
+            let duration_secs = started.elapsed().as_secs();
+
             if let Some(f) = fail_on {
                 println!("  Fail on: {}", f);
+            }
+            println!("  Command exited with status {status} after {duration_secs}s");
+
+            // A non-zero exit fails the run; a fail_on term further narrows
+            // which failures should break the build.
+            let failed = !status.success();
+
+            let summary = runlens_ci::CiJobSummary {
+                title: "runlens ci run".into(),
+                status: if failed {
+                    runlens_ci::CiJobStatus::Failed
+                } else {
+                    runlens_ci::CiJobStatus::Passed
+                },
+                metrics: vec![],
+                regressions: vec![],
+                artifacts: vec![],
+                duration_secs,
+            };
+            println!("{}", summary.to_github_markdown());
+
+            if failed {
+                std::process::exit(1);
             }
         },
         CiCommand::Summary { title, json } => {

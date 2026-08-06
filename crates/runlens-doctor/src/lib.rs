@@ -281,7 +281,10 @@ impl HealthCheck for DiskSpaceCheck {
                         return None;
                     }
                     let stat = unsafe { stat.assume_init() };
-                    Some(stat.f_bfree * stat.f_frsize)
+                    // f_bfree is u32 on macOS and u64 elsewhere; keep the cast
+                    // so the multiplication type-checks on every target
+                    #[allow(clippy::unnecessary_cast)]
+                    Some((stat.f_bfree as u64).saturating_mul(stat.f_frsize as u64))
                 })
                 .unwrap_or(0)
         }
