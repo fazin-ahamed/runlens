@@ -174,6 +174,8 @@ this repo uses a bit of ai for learning how to implement the editor
 integrations and to navigate the problems faced while attempting to implement
 them.
 
+note: the commits done on aug 8th was done by ai as right before shipping my friend reminded me ci runs would be gud to test these out, i didnt really have an idea of what ai to use but some people recommended opencode and i used it only because i noticed the ci run errors later on and it eventually ended up fixing it after multiple attempts while i was in vacation, did watch over the harness. i got it working on windown and wsl but that wasnt enough as mac and proper ubuntu was purely done of knowledge and a bit of forums which ended up backfiring. it is also the reason why my commits look dirty as i usually commit when completely sure and after testing
+
 ## license
 
 mit, for now. see [LICENSE](LICENSE).
